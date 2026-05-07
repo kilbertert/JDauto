@@ -17,15 +17,14 @@
 
 ## Stack
 
-- **Runtime**: Node.js >= 21
-- **CLI Framework**: [OpenCLI](https://github.com/jackwener/opencli)
-- **Browser Automation**: `opencli browser` 原语（Chrome CDP）
-- **语言**: TypeScript / JavaScript
-- **运行环境**: Windows（Chrome/Chromium 浏览器 + Browser Bridge 扩展）
+- Runtime: Node.js >= 21
+- Language: TypeScript
+- Browser Automation: OpenCLI `browser` / `jd` 子命令
+- Runtime OS: Windows（Chrome + Browser Bridge）
 
 ---
 
-## 目录结构
+## 目录结构（当前）
 
 ```
 JDauto/
@@ -47,67 +46,63 @@ JDauto/
 
 ---
 
-## 核心设计
+## 当前流程设计
 
-### 多实例架构
-- 每个京东账号 = 1 个独立的 Chrome 浏览器实例（通过 `opencli browser` CDP 控制）
-- 实例之间完全隔离，互不干扰
-- 主控进程通过配置文件管理所有实例的 SKU、抢购时间、支付密码
+### 状态机
 
-### 抢购流程状态机
 ```
-IDLE → PREPARE（提前打开商品页）→ ADD_CART → CHECKOUT → SUBMIT → PAYMENT → DONE
-                                              ↓
-                                           FAILED → RETRY
+IDLE -> PREPARE -> EXECUTING -> PAYMENT -> DONE
+                      \-----------------> FAILED
 ```
 
-### 关键时间控制
-- 抢购时间精确到秒，到点触发
-- 提前刷新页面 + 反复尝试提交
-- 支付密码在订单提交成功后立即注入
+### PREPARE（预热优先）
+
+1. 快速判断是否已在“提交订单”页（就绪则直接返回）。
+2. 打开购物车并检查 SKU 是否在车内（`isSkuInCart`）。
+3. 若不在车，则执行 `jd add-cart`（可选打开商品页由 `JDAUTO_PREPARE_OPEN_ITEM=1` 控制）。
+4. 执行一次“去结算/领券结算”预热并等待提交按钮就绪。
+5. 预热失败不立刻中断，`EXECUTE` 阶段有兜底跳转。
+
+### EXECUTE（到点核心动作）
+
+1. 若提交页未就绪，执行兜底：购物车 -> 去结算 -> 等提交按钮。
+2. 点击“提交订单”（带 `maxRetries` 重试，默认 3）。
+3. 成功后进入 `PAYMENT` 状态。
+
+### PAYMENT（单次注入自动支付）
+
+1. 启动一次页面内自动支付观察器（`startAutoPayFlow`）。
+2. 观察器在页面内自动执行：
+   - 监听并点击“立即支付”入口
+   - 等 `#shortPwdInput` 出现后注入密码并触发事件
+   - 点击最终确认“立即支付”
+3. Node 侧仅做高频轮询（50ms）状态：
+   - `done` -> `DONE`
+   - `failed`/超时 -> `FAILED`
 
 ---
 
-## 代码规范
+## 性能策略
 
-- **TypeScript**: 优先 `.ts`，类型标注完整
-- **函数命名**: 动词前缀（`snap`, `addCart`, `submitOrder`, `pay`, `injectPassword`）
-- **常量**: `UPPER_SNAKE_CASE`，无魔法数
-- **错误处理**: 每步必须捕获异常，超时重试机制
-
----
-
-## 测试与提交流流程
-
-1. 每次改动后跑 `npm test`
-2. 全量测试通过后再提 PR
-3. PR 必须包含：改动说明、测试结果、影响范围
-
-### Commit 规范
-- `feat:` 新功能
-- `fix:` 修 bug
-- `docs:` 文档
-- `refactor:` 重构
-- `chore:` 杂项
+- 默认 `prepareAhead` 为 45 秒（`index.ts`），让加购/结算预热尽量在抢购前完成。
+- 到点执行段尽量只保留“提交 + 支付”，减少 opencli 往返次数。
+- `opencli-wrap.ts` 在 Windows 下通过 PowerShell 安全传参，并对 `browser eval` 使用安全脚本封装（Base64 + UTF-8 decode）。
 
 ---
 
-## 常用命令
+## 关键配置
+
+- `--prepare-ahead`: 提前多少秒进入 PREPARE（默认 45）
+- `--max-retries`: 提交订单重试次数（默认 3）
+- `--manual`: 手动模式（不启动浏览器，使用已连接 profile）
+- `JDAUTO_PREPARE_OPEN_ITEM=1`: PREPARE 时强制打开商品页（默认关闭以提速）
+
+---
+
+## 开发命令
 
 ```bash
-# 环境验证
-opencli doctor
-
-# 调试用（透传原始命令）
-rtk proxy <cmd>
-
-# 开发者
 npm install
+npm run build
 npm test
-npm run lint
 ```
-
----
-
-## Three Man Team
-Available agents: Arch (Architect), Bob (Builder), Richard (Reviewer)

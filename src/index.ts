@@ -14,6 +14,8 @@ import { InstanceManager } from './instance-manager.js';
 import { FlashSaleScheduler } from './scheduler.js';
 import { FlashSaleInstance } from './instance.js';
 import { logger } from './utils/logger.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import type { ChromeAccount, FlashSaleTask } from './config.js';
 
 interface CliArgs {
@@ -56,8 +58,9 @@ async function main(): Promise<void> {
   // 加载配置（优先用命令行 --sku/--time，否则用配置文件）
   let config: { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };
   if (args.config) {
-    const mod = await import(`file://${args.config}`);
-    config = mod.default as { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };
+    const configPath = path.resolve(args.config);
+    const raw = fs.readFileSync(configPath, 'utf-8');
+    config = JSON.parse(raw) as { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };
   } else {
     config = loadConfig();
   }

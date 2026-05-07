@@ -53,22 +53,11 @@ export class FlashSaleInstance {
       return;
     }
 
-    logger.info(this.accountName, '预热到结算页...');
+    logger.info(this.accountName, '打开购物车检查商品...');
     await opencli.openCart(this.profile);
-
-    for (let i = 0; i < 4; i++) {
-      const r = await opencli.clickCheckoutButton(this.profile);
-      if (r === 'ok') break;
-      await sleep(120);
-    }
-    if (await this.waitSubmitReady(18, 100)) {
-      logger.success(this.accountName, '预热完成：提交订单按钮已就绪');
-      return;
-    }
-
-    // 仅当购物车确实缺商品时再加购；默认不打开商品页，降低 PREPARE 耗时
     const inCart = await opencli.isSkuInCart(this.profile, this.ctx.sku);
     if (!inCart) {
+      logger.info(this.accountName, '购物车无目标商品，执行加购...');
       if (process.env['JDAUTO_PREPARE_OPEN_ITEM'] === '1') {
         const url = `https://item.jd.com/${this.ctx.sku}.html`;
         logger.info(this.accountName, `打开商品页: ${url}`);
@@ -83,7 +72,8 @@ export class FlashSaleInstance {
       logger.info(this.accountName, '商品已在购物车，跳过加购');
     }
 
-    // 二次预热兜底
+    // 统一执行一次结算预热，避免无效双遍历
+    logger.info(this.accountName, '预热到结算页...');
     await opencli.openCart(this.profile);
     for (let i = 0; i < 5; i++) {
       const r = await opencli.clickCheckoutButton(this.profile);
@@ -169,7 +159,8 @@ export class FlashSaleInstance {
       return;
     }
 
-    logger.info(this.accountName, '注入自动支付观察器...');
+    // 直接启动自动支付观察器，避免一次状态探测往返
+    logger.info(this.accountName, '启动自动支付观察器...');
     const started = await opencli.startAutoPayFlow(this.profile, this.paymentPassword);
     logger.info(this.accountName, `自动支付启动: ${started}`);
     if (started !== 'started') {
@@ -179,18 +170,18 @@ export class FlashSaleInstance {
     }
 
     for (let i = 0; i < 100; i++) {
-      const st = await opencli.getAutoPayStatus(this.profile);
-      if (st.status === 'done') {
+      const next = await opencli.getAutoPayStatus(this.profile);
+      if (next.status === 'done') {
         this.setState(FlashSaleState.DONE);
         logger.success(this.accountName, '支付完成！');
         return;
       }
-      if (st.status === 'failed') {
-        logger.error(this.accountName, `自动支付失败: ${st.error || st.lastAction || 'unknown'}`);
+      if (next.status === 'failed') {
+        logger.error(this.accountName, `自动支付失败: ${next.error || next.lastAction || 'unknown'}`);
         this.setState(FlashSaleState.FAILED);
         return;
       }
-      await sleep(100);
+      await sleep(50);
     }
 
     logger.error(this.accountName, '自动支付超时');
