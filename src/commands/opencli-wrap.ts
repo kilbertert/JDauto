@@ -8,6 +8,7 @@
 import { spawn } from 'node:child_process';
 
 const OPENCLI_CMD = 'opencli';
+const AUTOPAY_WINDOW_NAME_PREFIX = '__JDAUTO_AUTOPAY__:';
 
 export interface CommandResult {
   stdout: string;
@@ -38,6 +39,51 @@ function buildSafeEvalScript(script: string): string {
   const encoded = Buffer.from(normalized, 'utf-8').toString('base64');
   // 生成无空格脚本并按 UTF-8 解码，避免中文（如“去结算”）在 atob 后乱码
   return `(()=>{const b=atob('${encoded}');const u=Uint8Array.from(b,c=>c.charCodeAt(0));return eval(new TextDecoder().decode(u));})()`;
+}
+
+function buildAutoPayBootstrapJs(passwordExpr: string): string {
+  const prefix = JSON.stringify(AUTOPAY_WINDOW_NAME_PREFIX);
+  return `
+    const old=window[KEY];
+    if(old && typeof old.cleanup==='function'){ try{ old.cleanup(); }catch(_){} }
+    const password=${passwordExpr};
+    const state={status:'running',error:'',lastAction:'init',startedAt:Date.now(),cleanup:null};
+    window[KEY]=state;
+    const isVisible=(e)=>!!e&&e.offsetParent!==null;
+    const hasText=(e,t)=>((e&&e.textContent)||'').replace(/\\s+/g,'').includes(t);
+    const findEntry=()=>Array.from(document.querySelectorAll('div,button'))
+      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().width>90&&e.getBoundingClientRect().height>30)
+      .sort((a,b)=>b.getBoundingClientRect().x-a.getBoundingClientRect().x)[0]||null;
+    const findFinal=()=>Array.from(document.querySelectorAll('div,button'))
+      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().x<800)[0]||null;
+    const fillPwd=()=>{const i=document.querySelector('#shortPwdInput');if(!i)return false;i.value=password;if(i._valueTracker)i._valueTracker.setValue('');['input','change'].forEach(t=>i.dispatchEvent(new Event(t,{bubbles:true})));return true;};
+    const cleanup=()=>{clearInterval(timer);observer.disconnect();};
+    const finish=(status,error='')=>{state.status=status;state.error=error;cleanup();try{if(String(window.name||'').startsWith(${prefix}))window.name='';}catch(_){}};
+    const step=()=>{try{
+      if(state.status==='done'||state.status==='failed')return;
+      const input=document.querySelector('#shortPwdInput');
+      if(!input){
+        const entry=findEntry();
+        if(entry){entry.click();state.lastAction='click-entry';}
+        state.status='waiting_password';
+        return;
+      }
+      const ok=fillPwd();
+      if(!ok){state.status='waiting_password';return;}
+      state.lastAction='password-set';
+      const finalBtn=findFinal();
+      if(finalBtn){finalBtn.click();state.lastAction='click-final';finish('done');return;}
+      state.status='waiting_final';
+    }catch(err){finish('failed',String(err));}};
+    const timer=setInterval(step,50);
+    const observer=new MutationObserver(()=>step());
+    observer.observe(document.documentElement||document.body,{childList:true,subtree:true,attributes:true});
+    state.cleanup=cleanup;
+    state.lastAction='observer-started';
+    setTimeout(()=>{if(state.status!=='done'&&state.status!=='failed'){finish('failed','timeout');}},10000);
+    step();
+    return state;
+  `;
 }
 
 function quoteForPowerShell(arg: string): string {
@@ -156,6 +202,38 @@ export async function clickSubmitOrderButton(profile: string): Promise<string> {
 }
 
 /**
+ * 单次 eval：点击“提交订单”并写入自动支付载荷
+ */
+export async function submitOrderAndArmAutoPay(profile: string, password: string): Promise<string> {
+  const safePassword = JSON.stringify(password);
+  const safePrefix = JSON.stringify(AUTOPAY_WINDOW_NAME_PREFIX);
+  const script = `(function(){
+    const href = location.href;
+    const onOrderPage = href.includes('trade.jd.com') || href.includes('/order/getOrderInfo');
+    const btn = Array.from(document.querySelectorAll('button'))
+      .find(e => {
+        const txt = (e.textContent || '').replace(/\\s+/g, '');
+        const rect = e.getBoundingClientRect();
+        const disabled = e.hasAttribute('disabled') || e.getAttribute('aria-disabled') === 'true';
+        return txt.includes('提交订单')
+          && e.offsetParent !== null
+          && rect.width > 40
+          && rect.height > 20
+          && !disabled;
+      });
+    if (btn && onOrderPage) {
+      const rect = btn.getBoundingClientRect();
+      const payload = encodeURIComponent(JSON.stringify({ password: ${safePassword}, armedAt: Date.now() }));
+      window.name = ${safePrefix} + payload;
+      btn.click();
+      return 'ok:clicked at (' + Math.round(rect.x) + ',' + Math.round(rect.y) + '); armed';
+    }
+    return 'not found';
+  })()`;
+  return evalScript(profile, script);
+}
+
+/**
  * 判断“提交订单”按钮是否已就绪（页面加载完成）
  */
 export async function isSubmitOrderReady(profile: string): Promise<boolean> {
@@ -258,44 +336,7 @@ export async function startAutoPayFlow(profile: string, password: string): Promi
   const pwd = JSON.stringify(password);
   const script = `(function(){
     const KEY='__JDAUTO_AUTOPAY__';
-    const password=${pwd};
-    const old=window[KEY];
-    if(old && typeof old.cleanup==='function'){ try{ old.cleanup(); }catch(_){} }
-    const state={status:'running',error:'',lastAction:'init',startedAt:Date.now(),cleanup:null};
-    window[KEY]=state;
-    const isVisible=(e)=>!!e&&e.offsetParent!==null;
-    const hasText=(e,t)=>((e&&e.textContent)||'').replace(/\\s+/g,'').includes(t);
-    const findEntry=()=>Array.from(document.querySelectorAll('div,button'))
-      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().width>90&&e.getBoundingClientRect().height>30)
-      .sort((a,b)=>b.getBoundingClientRect().x-a.getBoundingClientRect().x)[0]||null;
-    const findFinal=()=>Array.from(document.querySelectorAll('div,button'))
-      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().x<800)
-      [0]||null;
-    const fillPwd=()=>{const i=document.querySelector('#shortPwdInput');if(!i)return false;i.value=password;if(i._valueTracker)i._valueTracker.setValue('');['input','change'].forEach(t=>i.dispatchEvent(new Event(t,{bubbles:true})));return true;};
-    const finish=(status,error='')=>{state.status=status;state.error=error;cleanup();};
-    const step=()=>{try{
-      if(state.status==='done'||state.status==='failed')return;
-      const input=document.querySelector('#shortPwdInput');
-      if(!input){
-        const entry=findEntry();
-        if(entry){entry.click();state.lastAction='click-entry';}
-        state.status='waiting_password';
-        return;
-      }
-      const ok=fillPwd();
-      if(!ok){state.status='waiting_password';return;}
-      state.lastAction='password-set';
-      const finalBtn=findFinal();
-      if(finalBtn){finalBtn.click();state.lastAction='click-final';finish('done');return;}
-      state.status='waiting_final';
-    }catch(err){finish('failed',String(err));}};
-    const timer=setInterval(step,80);
-    const observer=new MutationObserver(()=>step());
-    observer.observe(document.documentElement||document.body,{childList:true,subtree:true,attributes:true});
-    const cleanup=()=>{clearInterval(timer);observer.disconnect();};
-    state.cleanup=cleanup;
-    setTimeout(()=>{if(state.status!=='done'&&state.status!=='failed'){finish('failed','timeout');}},10000);
-    step();
+    ${buildAutoPayBootstrapJs(pwd)}
     return 'started';
   })()`;
   return evalScript(profile, script);
@@ -307,9 +348,23 @@ export async function startAutoPayFlow(profile: string, password: string): Promi
 export async function getAutoPayStatus(profile: string): Promise<AutoPayStatus> {
   const script = `(function(){
     const KEY='__JDAUTO_AUTOPAY__';
+    const PREFIX=${JSON.stringify(AUTOPAY_WINDOW_NAME_PREFIX)};
+    const parsePayload=()=>{
+      const raw=String(window.name||'');
+      if(!raw.startsWith(PREFIX))return null;
+      try{return JSON.parse(decodeURIComponent(raw.slice(PREFIX.length)));}catch(_){return null;}
+    };
     const s=window[KEY];
-    if(!s)return JSON.stringify({status:'idle'});
-    return JSON.stringify({status:s.status||'idle',error:s.error||'',lastAction:s.lastAction||''});
+    if(s)return JSON.stringify({status:s.status||'idle',error:s.error||'',lastAction:s.lastAction||''});
+    const payload=parsePayload();
+    if(payload && payload.password){
+      ${buildAutoPayBootstrapJs('payload.password')}
+      return JSON.stringify({status:'running',error:'',lastAction:'bootstrapped'});
+    }
+    if(String(window.name||'').startsWith(PREFIX)){
+      return JSON.stringify({status:'failed',error:'invalid autopay payload',lastAction:'payload-parse-failed'});
+    }
+    return JSON.stringify({status:'idle'});
   })()`;
   const raw = await evalScript(profile, script);
   try {

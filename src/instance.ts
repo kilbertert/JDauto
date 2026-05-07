@@ -108,7 +108,7 @@ export class FlashSaleInstance {
       this.ctx.retryCount = i + 1;
       logger.info(this.accountName, `提交订单尝试 ${this.ctx.retryCount}/${this.ctx.maxRetries}...`);
 
-      const result = await opencli.clickSubmitOrderButton(this.profile);
+      const result = await opencli.submitOrderAndArmAutoPay(this.profile, this.paymentPassword);
       logger.info(this.accountName, `提交订单: ${result}`);
 
       if (result.startsWith('ok:')) {
@@ -157,16 +157,7 @@ export class FlashSaleInstance {
       return;
     }
 
-    // 直接启动自动支付观察器，避免一次状态探测往返
-    logger.info(this.accountName, '启动自动支付观察器...');
-    const started = await opencli.startAutoPayFlow(this.profile, this.paymentPassword);
-    logger.info(this.accountName, `自动支付启动: ${started}`);
-    if (started !== 'started') {
-      logger.error(this.accountName, '自动支付脚本启动失败');
-      this.setState(FlashSaleState.FAILED);
-      return;
-    }
-
+    logger.info(this.accountName, '等待自动支付流程完成...');
     for (let i = 0; i < 100; i++) {
       const next = await opencli.getAutoPayStatus(this.profile);
       if (next.status === 'done') {
@@ -178,6 +169,16 @@ export class FlashSaleInstance {
         logger.error(this.accountName, `自动支付失败: ${next.error || next.lastAction || 'unknown'}`);
         this.setState(FlashSaleState.FAILED);
         return;
+      }
+      if (next.status === 'idle' && i === 10) {
+        logger.warn(this.accountName, '自动支付载荷未生效，回退为直接启动观察器...');
+        const started = await opencli.startAutoPayFlow(this.profile, this.paymentPassword);
+        logger.info(this.accountName, `自动支付启动: ${started}`);
+        if (started !== 'started') {
+          logger.error(this.accountName, '自动支付脚本启动失败');
+          this.setState(FlashSaleState.FAILED);
+          return;
+        }
       }
       await sleep(50);
     }
