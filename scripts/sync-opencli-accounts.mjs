@@ -132,6 +132,7 @@ function main() {
     accounts.push({
       name: p.alias,
       profile: p.alias,
+      browserProfileDir: p.alias,
       chromePath,
       cdpPort: nextPort++,
     });

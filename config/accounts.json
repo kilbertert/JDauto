@@ -10,12 +10,14 @@
     {
       "name": "账号2",
       "profile": "账号2",
+      "browserProfileDir": "账号3",
       "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
       "cdpPort": 9222
     },
     {
       "name": "账号3",
       "profile": "账号3",
+      "browserProfileDir": "账号2",
       "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
       "cdpPort": 9223
     }
