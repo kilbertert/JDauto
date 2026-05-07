@@ -116,8 +116,11 @@ export async function evalScript(profile: string, script: string): Promise<strin
 export async function clickCheckoutButton(profile: string): Promise<string> {
   const script = `(function(){
     const el = Array.from(document.querySelectorAll('div'))
-      .find(e => e.className.includes('_submit_')
-        && (e.textContent.includes('去结算') || e.textContent.includes('领券结算')));
+      .find(e => {
+        if (!e.className.includes('_submit_')) return false;
+        const txt = (e.textContent || '').replace(/\\s+/g, '');
+        return txt.includes('去结算') || txt.includes('领券结算') || txt.includes('领劵结算');
+      });
     if (el) { el.click(); return 'ok'; }
     return 'not found';
   })()`;

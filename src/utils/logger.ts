@@ -33,8 +33,16 @@ function levelTag(level: LogLevel): string {
   }
 }
 
+function formatLocalTime(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  const ms = String(d.getMilliseconds()).padStart(3, '0');
+  return `${hh}:${mm}:${ss}.${ms}`;
+}
+
 export function log(level: LogLevel, account: string, message: string): void {
-  const ts = new Date().toISOString().slice(11, 23);
+  const ts = formatLocalTime(new Date());
   const lvl = levelTag(level).padEnd(7);
   const prefix = `[${account}]`.padEnd(10);
   console.log(`${GRAY}${ts}${RESET} ${color(level)}${lvl}${RESET} ${prefix} ${message}`);

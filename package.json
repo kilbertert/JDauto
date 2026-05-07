@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "京东抢购工具 — 多账号并行、全链路自动",
   "type": "module",
+  "main": "dist/desktop/main.js",
   "bin": {
     "jdauto": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "desktop": "electron dist/desktop/main.js",
+    "pack:win": "powershell -NoProfile -Command \"$root='dist-electron'; New-Item -ItemType Directory -Force -Path $root | Out-Null; $out=Join-Path $root (Get-Date -Format 'yyyyMMdd-HHmmss'); npm run build; npx electron-builder --win nsis --config.directories.output=$out\"",
+    "pack:win:fresh": "npm run pack:win",
     "dev": "tsc --watch",
     "test": "node --test tests/*.test.ts",
     "sync:profiles": "node scripts/sync-opencli-accounts.mjs"
@@ -19,6 +23,55 @@
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
     "typescript": "^5.7.0"
+  },
+  "build": {
+    "appId": "com.jdauto.desktop",
+    "productName": "JDauto",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/desktop/**/*",
+      "dist/commands/**/*",
+      "dist/utils/**/*",
+      "dist/*.js",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dist",
+        "to": "dist-cli",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "config",
+        "to": "config",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

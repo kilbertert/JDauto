@@ -103,28 +103,6 @@ export class FlashSaleInstance {
 
     this.setState(FlashSaleState.EXECUTING);
 
-    let submitReady = await opencli.isSubmitOrderReady(this.profile);
-    if (!submitReady) {
-      // 兜底：预热未成功时，回到购物车再走一次去结算
-      logger.warn(this.accountName, '提交页未就绪，执行兜底跳转...');
-      await opencli.openCart(this.profile);
-      for (let i = 0; i < 6; i++) {
-        const checkoutResult = await opencli.clickCheckoutButton(this.profile);
-        if (checkoutResult === 'ok') break;
-        await sleep(120);
-      }
-      for (let i = 0; i < 12; i++) {
-        submitReady = await opencli.isSubmitOrderReady(this.profile);
-        if (submitReady) break;
-        await sleep(100);
-      }
-      if (!submitReady) {
-        logger.error(this.accountName, '提交订单页面未就绪，结束本次任务');
-        this.setState(FlashSaleState.FAILED);
-        return;
-      }
-    }
-
     // 循环提交订单，最多重试 maxRetries 次
     for (let i = 0; i < this.ctx.maxRetries; i++) {
       this.ctx.retryCount = i + 1;
@@ -136,6 +114,26 @@ export class FlashSaleInstance {
       if (result.startsWith('ok:')) {
         logger.success(this.accountName, '订单提交成功，进入支付阶段');
         this.setState(FlashSaleState.PAYMENT);
+        return;
+      }
+
+      // 乐观提交失败后再兜底：回到购物车并跳转提交页
+      logger.warn(this.accountName, '提交按钮未命中，执行兜底跳转...');
+      await opencli.openCart(this.profile);
+      for (let j = 0; j < 6; j++) {
+        const checkoutResult = await opencli.clickCheckoutButton(this.profile);
+        if (checkoutResult === 'ok') break;
+        await sleep(120);
+      }
+      let submitReady = false;
+      for (let j = 0; j < 12; j++) {
+        submitReady = await opencli.isSubmitOrderReady(this.profile);
+        if (submitReady) break;
+        await sleep(100);
+      }
+      if (!submitReady) {
+        logger.error(this.accountName, '提交订单页面未就绪，结束本次任务');
+        this.setState(FlashSaleState.FAILED);
         return;
       }
 
