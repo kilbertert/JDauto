@@ -51,7 +51,7 @@ async function main(): Promise<void> {
 
   const args = parseArgs();
   const password = args.password ?? getPaymentPassword();
-  const prepareAheadMs = (args.prepareAhead ?? 10) * 1000;
+  const prepareAheadMs = (args.prepareAhead ?? 45) * 1000;
 
   // 加载配置（优先用命令行 --sku/--time，否则用配置文件）
   let config: { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };

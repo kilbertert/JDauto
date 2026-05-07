@@ -176,6 +176,25 @@ export async function isSubmitOrderReady(profile: string): Promise<boolean> {
 }
 
 /**
+ * 判断商品是否已在购物车
+ */
+export async function isSkuInCart(profile: string, sku: string): Promise<boolean> {
+  const safeSku = JSON.stringify(sku);
+  const script = `(function(){
+    const sku=${safeSku};
+    const nodes = Array.from(document.querySelectorAll('[data-sku],a,div,span'));
+    const found = nodes.some(e => {
+      const dataSku = e.getAttribute ? (e.getAttribute('data-sku') || '') : '';
+      const txt = (e.textContent || '');
+      const href = (e.tagName === 'A' && e.getAttribute) ? (e.getAttribute('href') || '') : '';
+      return dataSku.includes(sku) || txt.includes(sku) || href.includes(sku);
+    });
+    return found ? 'yes' : 'no';
+  })()`;
+  return (await evalScript(profile, script)) === 'yes';
+}
+
+/**
  * 判断支付页是否就绪（出现密码框或可见“立即支付”按钮）
  */
 export async function isPaymentPageReady(profile: string): Promise<boolean> {

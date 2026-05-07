@@ -47,31 +47,54 @@ export class FlashSaleInstance {
    */
   async prepare(): Promise<void> {
     this.setState(FlashSaleState.PREPARE);
-    const url = `https://item.jd.com/${this.ctx.sku}.html`;
-    logger.info(this.accountName, `打开商品页: ${url}`);
+    // 快速短路：已经在提交订单页则直接完成预热
+    if (await this.waitSubmitReady(4, 80)) {
+      logger.success(this.accountName, '预热完成：已在提交订单页');
+      return;
+    }
 
-    await opencli.openAndRefresh(this.profile, url);
-    logger.success(this.accountName, '商品页已打开（刷新完成）');
-
-    logger.info(this.accountName, '执行加购...');
-    await opencli.addToCart(this.profile, this.ctx.sku);
-    logger.success(this.accountName, '已加入购物车');
-
-    // 预热：提前进入“去结算/领券结算”后的订单确认页
     logger.info(this.accountName, '预热到结算页...');
     await opencli.openCart(this.profile);
+
     for (let i = 0; i < 4; i++) {
       const r = await opencli.clickCheckoutButton(this.profile);
       if (r === 'ok') break;
       await sleep(120);
     }
-    for (let i = 0; i < 15; i++) {
-      if (await opencli.isSubmitOrderReady(this.profile)) {
-        logger.success(this.accountName, '预热完成：提交订单按钮已就绪');
-        return;
+    if (await this.waitSubmitReady(18, 100)) {
+      logger.success(this.accountName, '预热完成：提交订单按钮已就绪');
+      return;
+    }
+
+    // 仅当购物车确实缺商品时再加购；默认不打开商品页，降低 PREPARE 耗时
+    const inCart = await opencli.isSkuInCart(this.profile, this.ctx.sku);
+    if (!inCart) {
+      if (process.env['JDAUTO_PREPARE_OPEN_ITEM'] === '1') {
+        const url = `https://item.jd.com/${this.ctx.sku}.html`;
+        logger.info(this.accountName, `打开商品页: ${url}`);
+        await opencli.openAndRefresh(this.profile, url);
+        logger.success(this.accountName, '商品页已打开（刷新完成）');
       }
+
+      logger.info(this.accountName, '执行加购...');
+      await opencli.addToCart(this.profile, this.ctx.sku);
+      logger.success(this.accountName, '已加入购物车');
+    } else {
+      logger.info(this.accountName, '商品已在购物车，跳过加购');
+    }
+
+    // 二次预热兜底
+    await opencli.openCart(this.profile);
+    for (let i = 0; i < 5; i++) {
+      const r = await opencli.clickCheckoutButton(this.profile);
+      if (r === 'ok') break;
       await sleep(120);
     }
+    if (await this.waitSubmitReady(20, 100)) {
+      logger.success(this.accountName, '预热完成：提交订单按钮已就绪');
+      return;
+    }
+
     logger.warn(this.accountName, '预热未完全就绪，EXECUTE 阶段将自动兜底');
   }
 
@@ -215,6 +238,16 @@ export class FlashSaleInstance {
       startTime,
       endTime,
     };
+  }
+
+  private async waitSubmitReady(maxChecks: number, intervalMs: number): Promise<boolean> {
+    for (let i = 0; i < maxChecks; i++) {
+      if (await opencli.isSubmitOrderReady(this.profile)) {
+        return true;
+      }
+      await sleep(intervalMs);
+    }
+    return false;
   }
 }
 
