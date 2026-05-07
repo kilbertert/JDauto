@@ -1,0 +1,23 @@
+{
+  "name": "jdauto",
+  "version": "1.0.0",
+  "description": "京东抢购工具 — 多账号并行、全链路自动",
+  "type": "module",
+  "bin": {
+    "jdauto": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "node --test tests/*.test.ts"
+  },
+  "engines": {
+    "node": ">=21"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

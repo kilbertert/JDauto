@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls *)",
+      "Bash(rtk --version)",
+      "Bash(rtk gain *)",
+      "Bash(opencli --version)",
+      "Bash(opencli browser *)",
+      "Bash(opencli profile *)",
+      "Bash(npm install *)",
+      "Bash(rtk tsc *)",
+      "Bash(node --test tests/smoke.test.ts)",
+      "Bash(rtk npm *)",
+      "Bash(rtk read *)",
+      "Bash(opencli *)",
+      "Bash(where msedge *)",
+      "Bash(node dist/index.js --sku 100218876132 --time 2026-05-07T01:11:00 --password 263414 --prepare-ahead 60)",
+      "Bash(node dist/index.js --sku 100218876132 --time 2026-05-07T17:15:00 --password 263414 --prepare-ahead 60 --manual)",
+      "Bash(TZ=Asia/Shanghai node -e \"console.log\\(new Date\\(\\).toLocaleString\\('zh-CN', {timeZone:'Asia/Shanghai'}\\)\\)\")",
+      "Bash(node *)",
+      "Bash(powershell *)",
+      "WebFetch(domain:minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com)",
+      "Bash(where opencli *)",
+      "Bash(rtk ps *)",
+      "Bash(rtk wc *)"
+    ]
+  }
+}
