@@ -11,8 +11,10 @@ import * as path from 'node:path';
 export interface ChromeAccount {
   /** 账号显示名称 */
   name: string;
-  /** Chrome profile 目录名（对应 --profile-directory） */
+  /** OpenCLI profile 名称（opencli --profile） */
   profile: string;
+  /** 浏览器 profile 目录名（对应 --profile-directory），未提供时回退到 profile */
+  browserProfileDir?: string;
   /** Chrome 可执行文件路径 */
   chromePath?: string;
   /** 独立调试端口（每个实例不同） */

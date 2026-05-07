@@ -5,18 +5,18 @@
 - Node.js >= 21
 - 已安装 `@jackwener/opencli` 并验证 `opencli doctor` 通过
 - 已安装 RTK（可选，降低 token 消耗）
-- 10 个独立的 Chrome Profile（每个对应一个京东账号）
+- 至少 1 个（建议多个）独立浏览器 Profile（每个对应一个京东账号，Edge/Chrome 均可）
 
 ---
 
-## 第一步：配置 Chrome Profile
+## 第一步：配置浏览器 Profile
 
-每个京东账号需要独立的 Chrome Profile：
+每个京东账号需要独立的浏览器 Profile：
 
-1. 打开 Chrome → 设置 → **用户** → 添加人员
-2. 给每个 profile 命名（如 `JDProfile1`、`JDProfile2`）
+1. 打开 Edge/Chrome → 右上角头像 → **添加配置文件**
+2. 给每个 profile 命名（如 `账号1`、`账号2`、`账号3`）
 3. 登录京东账号（确保已保存登录态）
-4. 重复以上步骤创建 10 个 profile
+4. 重复以上步骤创建多个 profile（按需要的并发账号数）
 
 **Profile 目录位置**（通常）：
 ```
@@ -31,16 +31,40 @@ C:\Users\<用户名>\AppData\Local\Google\Chrome\User Data\<ProfileName>
 
 1. 在每个 Chrome Profile 中安装 OpenCLI 扩展
 2. 打开扩展，确保证实 connected
-3. 验证连接：
+3. 验证连接（看到多个 connected 才代表多账号可用）：
 
 ```bash
 opencli profile list                    # 查看已连接 profile
-opencli --profile JDProfile1 browser tab list   # 验证指定 profile
+opencli --profile 账号1 browser tab list   # 验证指定 profile
 ```
 
 ---
 
-## 第三步：创建配置文件
+## 第三步：自动同步账号配置（推荐）
+
+当你手动创建了新 Profile 并安装好 OpenCLI 插件后，可以用一条命令自动完成：
+
+- 自动为无别名的 profile 执行 `opencli profile rename`
+- 自动把新账号写入 `config/accounts.json`
+- 自动分配可用 `cdpPort`
+
+```bash
+npm run sync:profiles
+```
+
+可选参数：
+
+```bash
+# 仅同步，不自动 rename
+node scripts/sync-opencli-accounts.mjs --no-rename
+
+# 自定义账号前缀与起始编号（默认: 账号 + 1）
+node scripts/sync-opencli-accounts.mjs --prefix 账号 --start-index 1
+```
+
+---
+
+## 第四步：创建/检查配置文件
 
 复制 `config/example-config.json` 并修改：
 
@@ -72,7 +96,12 @@ opencli --profile JDProfile1 browser tab list   # 验证指定 profile
 
 ---
 
-## 第四步：运行抢购
+## 第五步：运行抢购
+
+自动模式现在是“混合启动”：
+
+- 若账号对应浏览器已打开且 Browser Bridge 已连接：直接复用
+- 若账号未打开或未连接：程序自动启动该账号浏览器并等待连接
 
 **方式 A — 单命令行（单账号）：**
 
@@ -129,6 +158,12 @@ opencli doctor                    # 检查 opencli 环境
 opencli profile list              # 查看已连接 profile
 ```
 
+**日志显示“仅 1/N 个账号就绪”**
+- 先执行 `opencli profile list`，确认是否真的有 N 个 connected
+- 对失败账号逐个验证：`opencli --profile 账号X browser tab list`
+- 若无别名或别名缺失，执行 `npm run sync:profiles` 自动补齐
+- 若仍失败，打开对应 Profile 检查 OpenCLI 扩展是否 enabled + connected
+
 **Chrome 无法启动**
 - 检查 `chromePath` 是否正确
 - 检查端口是否被占用（CDP 端口冲突）
@@ -150,3 +185,24 @@ opencli profile list              # 查看已连接 profile
 | `--max-retries` | 提交订单失败重试次数（默认 3） |
 | `--prepare-ahead` | 提前多少秒开始 PREPARE（默认 45） |
 | `--accounts` | 本次启用账号数量（从配置文件前 N 个账号中选取） |
+
+---
+
+## 配置项补充
+
+`accounts` 中每个账号支持以下字段：
+
+- `profile`：OpenCLI profile 名称（用于 `opencli --profile <name>`）
+- `browserProfileDir`：浏览器真实 profile 目录名（用于 `--profile-directory`，可选）
+
+当 `profile` 与浏览器目录名不同（例如 OpenCLI 别名是 `账号11`，浏览器目录是 `Profile 2`）时，建议显式配置：
+
+```json
+{
+  "name": "账号11",
+  "profile": "账号11",
+  "browserProfileDir": "Profile 2",
+  "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "cdpPort": 9231
+}
+```

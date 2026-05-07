@@ -398,7 +398,7 @@ export async function openCart(profile: string): Promise<string> {
 /**
  * 验证 Browser Bridge 连接
  */
-export async function pingProfile(profile: string): Promise<boolean> {
-  const r = await runOpenCLI(['browser', 'tab', 'list'], profile, 10_000);
+export async function pingProfile(profile: string, timeoutMs = 10_000): Promise<boolean> {
+  const r = await runOpenCLI(['browser', 'tab', 'list'], profile, timeoutMs);
   return r.exitCode === 0;
 }

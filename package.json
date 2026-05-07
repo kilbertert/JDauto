@@ -10,7 +10,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc --watch",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "sync:profiles": "node scripts/sync-opencli-accounts.mjs"
   },
   "engines": {
     "node": ">=21"

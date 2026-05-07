@@ -1,15 +1,24 @@
 {
   "accounts": [
-    { "name": "账号1", "profile": "账号1", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9221 },
-    { "name": "账号2", "profile": "账号2", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9222 },
-    { "name": "账号3", "profile": "账号3", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9223 },
-    { "name": "账号4", "profile": "账号4", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9224 },
-    { "name": "账号5", "profile": "账号5", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9225 },
-    { "name": "账号6", "profile": "账号6", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9226 },
-    { "name": "账号7", "profile": "账号7", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9227 },
-    { "name": "账号8", "profile": "账号8", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9228 },
-    { "name": "账号9", "profile": "账号9", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9229 },
-    { "name": "账号10", "profile": "账号10", "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "cdpPort": 9230 }
+    {
+      "name": "账号1",
+      "profile": "账号1",
+      "browserProfileDir": "Default",
+      "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "cdpPort": 9221
+    },
+    {
+      "name": "账号2",
+      "profile": "账号2",
+      "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "cdpPort": 9222
+    },
+    {
+      "name": "账号3",
+      "profile": "账号3",
+      "chromePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "cdpPort": 9223
+    }
   ],
   "tasks": [
     {

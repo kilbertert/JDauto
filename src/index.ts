@@ -140,8 +140,15 @@ async function main(): Promise<void> {
     // ── 自动模式：启动所有 Chrome 实例 ─────────────────────────────────
     logger.info('Main', '自动模式：启动所有 Chrome 实例...');
     await manager.startAll(activeAccounts);
+    const runnableAccounts = manager.getReadyAccounts(activeAccounts);
+    if (runnableAccounts.length === 0) {
+      throw new Error('没有可用账号（Browser Bridge 未连接），请先检查 profile 连接状态');
+    }
+    if (runnableAccounts.length < activeAccounts.length) {
+      logger.warn('Main', `将仅使用已就绪账号继续任务: ${runnableAccounts.length}/${activeAccounts.length}`);
+    }
 
-    for (const account of activeAccounts) {
+    for (const account of runnableAccounts) {
       for (const task of config.tasks) {
         // 同一账号+任务复用单实例，避免 prepare/execute 各自 new 导致状态丢失
         const instance = new FlashSaleInstance(
