@@ -56,6 +56,23 @@ export class FlashSaleInstance {
     logger.info(this.accountName, '执行加购...');
     await opencli.addToCart(this.profile, this.ctx.sku);
     logger.success(this.accountName, '已加入购物车');
+
+    // 预热：提前进入“去结算/领券结算”后的订单确认页
+    logger.info(this.accountName, '预热到结算页...');
+    await opencli.openCart(this.profile);
+    for (let i = 0; i < 4; i++) {
+      const r = await opencli.clickCheckoutButton(this.profile);
+      if (r === 'ok') break;
+      await sleep(120);
+    }
+    for (let i = 0; i < 15; i++) {
+      if (await opencli.isSubmitOrderReady(this.profile)) {
+        logger.success(this.accountName, '预热完成：提交订单按钮已就绪');
+        return;
+      }
+      await sleep(120);
+    }
+    logger.warn(this.accountName, '预热未完全就绪，EXECUTE 阶段将自动兜底');
   }
 
   /**
@@ -73,44 +90,26 @@ export class FlashSaleInstance {
 
     this.setState(FlashSaleState.EXECUTING);
 
-    // 打开购物车
-    logger.info(this.accountName, '打开购物车页面...');
-    await opencli.openCart(this.profile);
-
-    // 点击"去结算"：极速轮询（低延迟）
-    logger.info(this.accountName, '点击"去结算"...');
-    let checkoutResult = '';
-    let checkoutOk = false;
-    for (let i = 0; i < 6; i++) {
-      checkoutResult = await opencli.clickCheckoutButton(this.profile);
-      if (checkoutResult === 'ok') {
-        checkoutOk = true;
-        break;
-      }
-      logger.warn(this.accountName, `结算按钮未就绪（第 ${i + 1}/6 次）: ${checkoutResult || 'empty'}`);
-      if (i === 2) {
-        await opencli.openCart(this.profile);
-      }
-      await sleep(120);
-    }
-    logger.info(this.accountName, `结算按钮: ${checkoutResult || 'empty'}`);
-    if (!checkoutOk) {
-      logger.error(this.accountName, '去结算按钮点击失败，结束本次任务');
-      this.setState(FlashSaleState.FAILED);
-      return;
-    }
-
-    // 去结算后短等待“提交订单”就绪，避免页面还在跳转时误判点击成功
-    let submitReady = false;
-    for (let i = 0; i < 12; i++) {
-      submitReady = await opencli.isSubmitOrderReady(this.profile);
-      if (submitReady) break;
-      await sleep(100);
-    }
+    let submitReady = await opencli.isSubmitOrderReady(this.profile);
     if (!submitReady) {
-      logger.error(this.accountName, '提交订单页面未就绪，结束本次任务');
-      this.setState(FlashSaleState.FAILED);
-      return;
+      // 兜底：预热未成功时，回到购物车再走一次去结算
+      logger.warn(this.accountName, '提交页未就绪，执行兜底跳转...');
+      await opencli.openCart(this.profile);
+      for (let i = 0; i < 6; i++) {
+        const checkoutResult = await opencli.clickCheckoutButton(this.profile);
+        if (checkoutResult === 'ok') break;
+        await sleep(120);
+      }
+      for (let i = 0; i < 12; i++) {
+        submitReady = await opencli.isSubmitOrderReady(this.profile);
+        if (submitReady) break;
+        await sleep(100);
+      }
+      if (!submitReady) {
+        logger.error(this.accountName, '提交订单页面未就绪，结束本次任务');
+        this.setState(FlashSaleState.FAILED);
+        return;
+      }
     }
 
     // 循环提交订单，最多重试 maxRetries 次
@@ -122,27 +121,9 @@ export class FlashSaleInstance {
       logger.info(this.accountName, `提交订单: ${result}`);
 
       if (result.startsWith('ok:')) {
-        // 提交返回 ok 后做短时确认：出现支付入口或密码框才进入 PAYMENT
-        let payReady = false;
-        for (let j = 0; j < 10; j++) {
-          if (await opencli.isPasswordInputReady(this.profile)) {
-            payReady = true;
-            break;
-          }
-          if (await opencli.isPayEntryReady(this.profile)) {
-            payReady = true;
-            break;
-          }
-          await sleep(100);
-        }
-
-        if (payReady) {
-          logger.success(this.accountName, '订单提交成功，进入支付阶段');
-          this.setState(FlashSaleState.PAYMENT);
-          return;
-        }
-
-        logger.warn(this.accountName, '提交返回 ok，但支付入口未出现，继续重试...');
+        logger.success(this.accountName, '订单提交成功，进入支付阶段');
+        this.setState(FlashSaleState.PAYMENT);
+        return;
       }
 
       if (i < this.ctx.maxRetries - 1) {
@@ -165,42 +146,32 @@ export class FlashSaleInstance {
       return;
     }
 
-    // 按手工流程：先点击“立即支付”唤起密码输入，再极速轮询输入框
-    let inputReady = await opencli.isPasswordInputReady(this.profile);
-    for (let i = 0; i < 6 && !inputReady; i++) {
-      logger.info(this.accountName, `点击"立即支付"唤起密码输入（第 ${i + 1}/6 次）...`);
-      const r1 = await opencli.clickFirstPayButton(this.profile);
-      logger.info(this.accountName, `立即支付(进入): ${r1}`);
+    logger.info(this.accountName, '注入自动支付观察器...');
+    const started = await opencli.startAutoPayFlow(this.profile, this.paymentPassword);
+    logger.info(this.accountName, `自动支付启动: ${started}`);
+    if (started !== 'started') {
+      logger.error(this.accountName, '自动支付脚本启动失败');
+      this.setState(FlashSaleState.FAILED);
+      return;
+    }
+
+    for (let i = 0; i < 100; i++) {
+      const st = await opencli.getAutoPayStatus(this.profile);
+      if (st.status === 'done') {
+        this.setState(FlashSaleState.DONE);
+        logger.success(this.accountName, '支付完成！');
+        return;
+      }
+      if (st.status === 'failed') {
+        logger.error(this.accountName, `自动支付失败: ${st.error || st.lastAction || 'unknown'}`);
+        this.setState(FlashSaleState.FAILED);
+        return;
+      }
       await sleep(100);
-      inputReady = await opencli.isPasswordInputReady(this.profile);
     }
 
-    if (!inputReady) {
-      logger.error(this.accountName, '支付密码输入框未出现，支付终止');
-      this.setState(FlashSaleState.FAILED);
-      return;
-    }
-
-    logger.info(this.accountName, '注入支付密码...');
-    const r2 = await opencli.injectPassword(this.profile, this.paymentPassword);
-    logger.info(this.accountName, `密码注入: ${r2}`);
-    if (!r2.startsWith('password set:')) {
-      logger.error(this.accountName, '支付密码注入失败');
-      this.setState(FlashSaleState.FAILED);
-      return;
-    }
-
-    logger.info(this.accountName, '点击"立即支付"确认...');
-    const r3 = await opencli.clickFinalPayButton(this.profile);
-    logger.info(this.accountName, `确认支付: ${r3}`);
-    if (!r3.includes('clicked at')) {
-      logger.error(this.accountName, '未找到最终确认支付按钮');
-      this.setState(FlashSaleState.FAILED);
-      return;
-    }
-
-    this.setState(FlashSaleState.DONE);
-    logger.success(this.accountName, '支付完成！');
+    logger.error(this.accountName, '自动支付超时');
+    this.setState(FlashSaleState.FAILED);
   }
 
   async run(prepareMs: number): Promise<InstanceResult> {

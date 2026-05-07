@@ -15,6 +15,12 @@ export interface CommandResult {
   exitCode: number;
 }
 
+export interface AutoPayStatus {
+  status: string;
+  error?: string;
+  lastAction?: string;
+}
+
 function pickOutputText(r: CommandResult): string {
   const out = r.stdout.trim();
   if (out) return out;
@@ -110,7 +116,8 @@ export async function evalScript(profile: string, script: string): Promise<strin
 export async function clickCheckoutButton(profile: string): Promise<string> {
   const script = `(function(){
     const el = Array.from(document.querySelectorAll('div'))
-      .find(e => e.className.includes('_submit_') && e.textContent.includes('去结算'));
+      .find(e => e.className.includes('_submit_')
+        && (e.textContent.includes('去结算') || e.textContent.includes('领券结算')));
     if (el) { el.click(); return 'ok'; }
     return 'not found';
   })()`;
@@ -220,6 +227,74 @@ export async function isPasswordInputReady(profile: string): Promise<boolean> {
     return document.querySelector('#shortPwdInput') ? 'ready' : 'not ready';
   })()`;
   return (await evalScript(profile, script)) === 'ready';
+}
+
+/**
+ * 注入一次自动支付脚本（页面内 MutationObserver 连续处理）
+ */
+export async function startAutoPayFlow(profile: string, password: string): Promise<string> {
+  const pwd = JSON.stringify(password);
+  const script = `(function(){
+    const KEY='__JDAUTO_AUTOPAY__';
+    const password=${pwd};
+    const old=window[KEY];
+    if(old && typeof old.cleanup==='function'){ try{ old.cleanup(); }catch(_){} }
+    const state={status:'running',error:'',lastAction:'init',startedAt:Date.now(),cleanup:null};
+    window[KEY]=state;
+    const isVisible=(e)=>!!e&&e.offsetParent!==null;
+    const hasText=(e,t)=>((e&&e.textContent)||'').replace(/\\s+/g,'').includes(t);
+    const findEntry=()=>Array.from(document.querySelectorAll('div,button'))
+      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().width>90&&e.getBoundingClientRect().height>30)
+      .sort((a,b)=>b.getBoundingClientRect().x-a.getBoundingClientRect().x)[0]||null;
+    const findFinal=()=>Array.from(document.querySelectorAll('div,button'))
+      .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().x<800)
+      [0]||null;
+    const fillPwd=()=>{const i=document.querySelector('#shortPwdInput');if(!i)return false;i.value=password;if(i._valueTracker)i._valueTracker.setValue('');['input','change'].forEach(t=>i.dispatchEvent(new Event(t,{bubbles:true})));return true;};
+    const finish=(status,error='')=>{state.status=status;state.error=error;cleanup();};
+    const step=()=>{try{
+      if(state.status==='done'||state.status==='failed')return;
+      const input=document.querySelector('#shortPwdInput');
+      if(!input){
+        const entry=findEntry();
+        if(entry){entry.click();state.lastAction='click-entry';}
+        state.status='waiting_password';
+        return;
+      }
+      const ok=fillPwd();
+      if(!ok){state.status='waiting_password';return;}
+      state.lastAction='password-set';
+      const finalBtn=findFinal();
+      if(finalBtn){finalBtn.click();state.lastAction='click-final';finish('done');return;}
+      state.status='waiting_final';
+    }catch(err){finish('failed',String(err));}};
+    const timer=setInterval(step,80);
+    const observer=new MutationObserver(()=>step());
+    observer.observe(document.documentElement||document.body,{childList:true,subtree:true,attributes:true});
+    const cleanup=()=>{clearInterval(timer);observer.disconnect();};
+    state.cleanup=cleanup;
+    setTimeout(()=>{if(state.status!=='done'&&state.status!=='failed'){finish('failed','timeout');}},10000);
+    step();
+    return 'started';
+  })()`;
+  return evalScript(profile, script);
+}
+
+/**
+ * 获取自动支付脚本状态
+ */
+export async function getAutoPayStatus(profile: string): Promise<AutoPayStatus> {
+  const script = `(function(){
+    const KEY='__JDAUTO_AUTOPAY__';
+    const s=window[KEY];
+    if(!s)return JSON.stringify({status:'idle'});
+    return JSON.stringify({status:s.status||'idle',error:s.error||'',lastAction:s.lastAction||''});
+  })()`;
+  const raw = await evalScript(profile, script);
+  try {
+    return JSON.parse(raw) as AutoPayStatus;
+  } catch {
+    return { status: 'unknown', error: raw };
+  }
 }
 
 /**
