@@ -80,7 +80,8 @@ opencli --profile JDProfile1 browser tab list   # 验证指定 profile
 jdauto --sku 100218876132 \
   --time "2026-05-07T20:00:00" \
   --password 263414 \
-  --config config/example-config.json
+  --config config/example-config.json \
+  --accounts 1
 ```
 
 **方式 B — 配置文件（多账号多任务）：**
@@ -148,3 +149,4 @@ opencli profile list              # 查看已连接 profile
 | `--config` | 配置文件路径 |
 | `--max-retries` | 提交订单失败重试次数（默认 3） |
 | `--prepare-ahead` | 提前多少秒开始 PREPARE（默认 45） |
+| `--accounts` | 本次启用账号数量（从配置文件前 N 个账号中选取） |

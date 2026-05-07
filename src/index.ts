@@ -25,6 +25,8 @@ interface CliArgs {
   config?: string;
   maxRetries?: number;
   prepareAhead?: number;
+  /** 本次启用账号数量（从配置文件前 N 个账号中选取） */
+  accounts?: number;
   /** 手动模式：不启动浏览器，使用已运行的浏览器（Browser Bridge 已连接） */
   manual?: boolean;
 }
@@ -41,6 +43,7 @@ function parseArgs(): CliArgs {
       case '--config': args.config = raw[++i]; break;
       case '--max-retries': args.maxRetries = parseInt(raw[++i], 10); break;
       case '--prepare-ahead': args.prepareAhead = parseInt(raw[++i], 10); break;
+      case '--accounts': args.accounts = parseInt(raw[++i], 10); break;
       case '--manual': args.manual = true; break;
     }
   }
@@ -75,7 +78,15 @@ async function main(): Promise<void> {
     config = { accounts: config.accounts, tasks };
   }
 
-  logger.info('Main', `加载到 ${config.accounts.length} 个账号，${config.tasks.length} 个任务`);
+  if (args.accounts !== undefined && (!Number.isInteger(args.accounts) || args.accounts <= 0)) {
+    throw new Error(`--accounts 参数非法: ${args.accounts}，必须是大于 0 的整数`);
+  }
+  const activeAccounts = args.accounts ? config.accounts.slice(0, args.accounts) : config.accounts;
+  if (activeAccounts.length === 0) {
+    throw new Error('未找到可用账号，请检查配置文件 accounts');
+  }
+
+  logger.info('Main', `加载到 ${config.accounts.length} 个账号，启用 ${activeAccounts.length} 个账号，${config.tasks.length} 个任务`);
 
   const manager = new InstanceManager();
   const scheduler = new FlashSaleScheduler();
@@ -93,7 +104,7 @@ async function main(): Promise<void> {
     logger.info('Main', '手动模式：跳过浏览器启动，使用已连接的浏览器');
 
     // 取第一个账号作为执行器（单账号测试）
-    const account = config.accounts[0];
+    const account = activeAccounts[0];
 
     for (const task of config.tasks) {
       // 同一任务复用同一个实例，避免 PREPARE/EXECUTE 状态断裂
@@ -128,9 +139,9 @@ async function main(): Promise<void> {
   } else {
     // ── 自动模式：启动所有 Chrome 实例 ─────────────────────────────────
     logger.info('Main', '自动模式：启动所有 Chrome 实例...');
-    await manager.startAll(config.accounts);
+    await manager.startAll(activeAccounts);
 
-    for (const account of config.accounts) {
+    for (const account of activeAccounts) {
       for (const task of config.tasks) {
         // 同一账号+任务复用单实例，避免 prepare/execute 各自 new 导致状态丢失
         const instance = new FlashSaleInstance(
