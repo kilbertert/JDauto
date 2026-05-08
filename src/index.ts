@@ -13,7 +13,9 @@ import { loadConfig, getPaymentPassword } from './config.js';
 import { InstanceManager } from './instance-manager.js';
 import { FlashSaleScheduler } from './scheduler.js';
 import { FlashSaleInstance } from './instance.js';
+import { syncJdClock } from './jd-clock.js';
 import { logger } from './utils/logger.js';
+import * as opencli from './commands/opencli-wrap.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ChromeAccount, FlashSaleTask } from './config.js';
@@ -51,6 +53,24 @@ function parseArgs(): CliArgs {
   return args;
 }
 
+async function prioritizeConnectedAccounts(accounts: ChromeAccount[]): Promise<{
+  ordered: ChromeAccount[];
+  connectedSet: Set<string>;
+}> {
+  const checks = await Promise.all(
+    accounts.map(async (account) => ({
+      account,
+      connected: await opencli.pingProfile(account.profile, 3_000),
+    }))
+  );
+  const connected = checks.filter((x) => x.connected).map((x) => x.account);
+  const disconnected = checks.filter((x) => !x.connected).map((x) => x.account);
+  return {
+    ordered: [...connected, ...disconnected],
+    connectedSet: new Set(connected.map((a) => a.profile)),
+  };
+}
+
 async function main(): Promise<void> {
   console.log('\n=== JDauto 京东抢购工具 ===\n');
 
@@ -81,7 +101,16 @@ async function main(): Promise<void> {
   if (args.accounts !== undefined && (!Number.isInteger(args.accounts) || args.accounts <= 0)) {
     throw new Error(`--accounts 参数非法: ${args.accounts}，必须是大于 0 的整数`);
   }
-  const activeAccounts = args.accounts ? config.accounts.slice(0, args.accounts) : config.accounts;
+  let activeAccounts = config.accounts;
+  if (args.accounts) {
+    const prioritized = await prioritizeConnectedAccounts(config.accounts);
+    activeAccounts = prioritized.ordered.slice(0, args.accounts);
+    const selectedConnectedCount = activeAccounts.filter((a) => prioritized.connectedSet.has(a.profile)).length;
+    logger.info(
+      'Main',
+      `按“已连接优先”选择账号: 请求 ${args.accounts}，命中已连接 ${selectedConnectedCount}/${activeAccounts.length}`
+    );
+  }
   if (activeAccounts.length === 0) {
     throw new Error('未找到可用账号，请检查配置文件 accounts');
   }
@@ -90,6 +119,19 @@ async function main(): Promise<void> {
 
   const manager = new InstanceManager();
   const scheduler = new FlashSaleScheduler();
+  let clockOffsetMs = 0;
+
+  try {
+    logger.info('Main', '正在同步京东服务器时间...');
+    const clock = await syncJdClock();
+    clockOffsetMs = clock.offsetMs;
+    logger.info(
+      'Main',
+      `时间同步完成：京东时间相对本地 ${clockOffsetMs >= 0 ? '+' : ''}${clockOffsetMs}ms，采样 ${clock.samples.length} 次，中位 RTT ${clock.medianRttMs}ms`
+    );
+  } catch (err) {
+    logger.warn('Main', `京东时间同步失败，回退本地时间调度: ${err}`);
+  }
 
   // 注册 Ctrl+C 退出
   process.on('SIGINT', async () => {
@@ -131,7 +173,7 @@ async function main(): Promise<void> {
             await instance.pay();
           }
         },
-        { prepareAheadMs }
+        { prepareAheadMs, clockOffsetMs }
       );
     }
 
@@ -174,7 +216,7 @@ async function main(): Promise<void> {
               await instance.pay();
             }
           },
-          { prepareAheadMs }
+          { prepareAheadMs, clockOffsetMs }
         );
       }
     }

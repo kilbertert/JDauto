@@ -11,6 +11,8 @@ import type { FlashSaleTask } from './config.js';
 export interface SchedulerConfig {
   /** 抢购前多少毫秒开始 PREPARE */
   prepareAheadMs: number;
+  /** 京东服务器时间相对本地时间的偏移（server - local） */
+  clockOffsetMs?: number;
 }
 
 const DEFAULT_PREPARE_AHEAD_MS = 10_000; // 10 秒
@@ -37,12 +39,13 @@ export class FlashSaleScheduler {
   ): void {
     const flashTime = new Date(task.flashSaleTime).getTime();
     const now = Date.now();
+    const adjustedNow = now + (cfg.clockOffsetMs ?? 0);
 
     const prepareTime = flashTime - cfg.prepareAheadMs;
     const executeTime = flashTime;
 
-    if (prepareTime > now) {
-      const delay = prepareTime - now;
+    if (prepareTime > adjustedNow) {
+      const delay = prepareTime - adjustedNow;
       logger.info('Scheduler', `任务 ${task.sku} PREPARE 阶段将在 ${Math.round(delay / 1000)}s 后触发`);
       const timer = setTimeout(() => {
         logger.info('Scheduler', `PREPARE 触发: ${task.sku}`);
@@ -54,8 +57,8 @@ export class FlashSaleScheduler {
       onPrepare(task);
     }
 
-    if (executeTime > now) {
-      const delay = executeTime - now;
+    if (executeTime > adjustedNow) {
+      const delay = executeTime - adjustedNow;
       logger.info('Scheduler', `任务 ${task.sku} EXECUTE 阶段将在 ${Math.round(delay / 1000)}s 后触发`);
       const timer = setTimeout(() => {
         logger.info('Scheduler', `EXECUTE 触发: ${task.sku}`);

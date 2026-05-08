@@ -6,9 +6,14 @@
  */
 
 import { spawn } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const OPENCLI_CMD = 'opencli';
 const AUTOPAY_WINDOW_NAME_PREFIX = '__JDAUTO_AUTOPAY__:';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface CommandResult {
   stdout: string;
@@ -90,6 +95,28 @@ function quoteForPowerShell(arg: string): string {
   return `'${arg.replace(/'/g, "''")}'`;
 }
 
+function findFirstExisting(paths: string[]): string | null {
+  for (const p of paths) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+function resolveBundledOpenCliCliPath(): string | null {
+  const envPath = process.env['JDAUTO_OPENCLI_CLI_PATH'];
+  if (envPath && fs.existsSync(envPath)) return envPath;
+
+  const devPath = path.resolve(__dirname, '../../node_modules/@jackwener/opencli/dist/cli.js');
+  const appAsarPath = process.resourcesPath
+    ? path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js')
+    : '';
+  const appUnpackedPath = process.resourcesPath
+    ? path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js')
+    : '';
+
+  return findFirstExisting([devPath, appAsarPath, appUnpackedPath]);
+}
+
 /**
  * 执行 opencli 命令
  * 注意：--profile 是全局选项，必须放在 subcommand 前面
@@ -102,16 +129,21 @@ async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000):
     : [...args];
 
   return new Promise((resolve) => {
+    const bundledCliPath = resolveBundledOpenCliCliPath();
     const isWindows = process.platform === 'win32';
-    const spawnCmd = isWindows ? 'powershell.exe' : OPENCLI_CMD;
-    const spawnArgs = isWindows
-      ? [
-        '-NoProfile',
-        '-NonInteractive',
-        '-Command',
-        `opencli ${fullArgs.map(quoteForPowerShell).join(' ')}`,
-      ]
-      : fullArgs;
+    const spawnCmd = bundledCliPath
+      ? process.execPath
+      : (isWindows ? 'powershell.exe' : OPENCLI_CMD);
+    const spawnArgs = bundledCliPath
+      ? [bundledCliPath, ...fullArgs]
+      : (isWindows
+        ? [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          `opencli ${fullArgs.map(quoteForPowerShell).join(' ')}`,
+        ]
+        : fullArgs);
 
     let child;
     try {
@@ -119,6 +151,9 @@ async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000):
         shell: false,
         windowsHide: true,
         timeout: timeoutMs,
+        env: bundledCliPath
+          ? { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+          : process.env,
       });
     } catch (err) {
       resolve({ stdout: '', stderr: String(err), exitCode: 1 });

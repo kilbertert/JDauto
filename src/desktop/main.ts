@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../config.js';
+import type { JDAutoConfig, ChromeAccount } from '../config.js';
 
 interface StartRequestBody {
   sku?: string;
@@ -25,10 +26,15 @@ interface RunState {
   logs: string[];
 }
 
+interface InitProfilesPayload {
+  count?: number;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const MAX_LOG_LINES = 800;
+const DEFAULT_EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 
 let mainWindow: BrowserWindow | null = null;
 let child: ChildProcessWithoutNullStreams | null = null;
@@ -77,6 +83,111 @@ function resolveConfigPath(): string | null {
   return app.isPackaged
     ? findFirstExisting([packagedConfigPath, devConfigPath])
     : findFirstExisting([devConfigPath, packagedConfigPath]);
+}
+
+function resolveSyncScriptPath(): string {
+  const devPath = path.join(PROJECT_ROOT, 'scripts', 'sync-opencli-accounts.mjs');
+  const packagedPath = path.join(process.resourcesPath, 'scripts', 'sync-opencli-accounts.mjs');
+  const found = app.isPackaged
+    ? findFirstExisting([packagedPath, devPath])
+    : findFirstExisting([devPath, packagedPath]);
+  if (!found) {
+    throw new Error(`未找到同步脚本: ${devPath} 或 ${packagedPath}`);
+  }
+  return found;
+}
+
+function resolveCleanupScriptPath(): string {
+  const devPath = path.join(PROJECT_ROOT, 'scripts', 'cleanup-opencli-profiles.mjs');
+  const packagedPath = path.join(process.resourcesPath, 'scripts', 'cleanup-opencli-profiles.mjs');
+  const found = app.isPackaged
+    ? findFirstExisting([packagedPath, devPath])
+    : findFirstExisting([devPath, packagedPath]);
+  if (!found) {
+    throw new Error(`未找到清理脚本: ${devPath} 或 ${packagedPath}`);
+  }
+  return found;
+}
+
+function resolveOpenCliCliPath(): string | null {
+  const envPath = process.env['JDAUTO_OPENCLI_CLI_PATH'];
+  if (envPath && fs.existsSync(envPath)) return envPath;
+  const devPath = path.join(PROJECT_ROOT, 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
+  const appAsarPath = path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
+  const appUnpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
+  return app.isPackaged
+    ? findFirstExisting([appAsarPath, appUnpackedPath, devPath])
+    : findFirstExisting([devPath, appAsarPath, appUnpackedPath]);
+}
+
+function resolveExtensionDir(): string {
+  const envPath = process.env['JDAUTO_OPENCLI_EXTENSION_DIR'];
+  if (envPath && fs.existsSync(envPath)) return envPath;
+
+  const local = process.env['LOCALAPPDATA'];
+  const stableDir = local
+    ? path.join(local, 'JDauto', 'opencli-extension')
+    : path.join(PROJECT_ROOT, '.jdauto-opencli-extension');
+  if (fs.existsSync(stableDir)) return stableDir;
+
+  const candidates = [
+    path.join(PROJECT_ROOT, 'OpenCLI-main', 'extension'),
+    path.join(PROJECT_ROOT, 'opencli-extension'),
+    path.join(process.resourcesPath, 'opencli-extension'),
+    path.join(process.resourcesPath, 'OpenCLI-main', 'extension'),
+  ];
+  const found = findFirstExisting(candidates);
+  if (!found) {
+    throw new Error('未找到 OpenCLI 扩展目录，请先配置 JDAUTO_OPENCLI_EXTENSION_DIR 或确保 OpenCLI-main/extension 存在');
+  }
+  return found;
+}
+
+function ensureStableExtensionDir(): string {
+  const local = process.env['LOCALAPPDATA'];
+  const stableDir = local
+    ? path.join(local, 'JDauto', 'opencli-extension')
+    : path.join(PROJECT_ROOT, '.jdauto-opencli-extension');
+
+  const sourceCandidates = [
+    path.join(PROJECT_ROOT, 'OpenCLI-main', 'extension'),
+    path.join(PROJECT_ROOT, 'opencli-extension'),
+    path.join(process.resourcesPath, 'opencli-extension'),
+    path.join(process.resourcesPath, 'OpenCLI-main', 'extension'),
+  ];
+  const source = findFirstExisting(sourceCandidates);
+  if (!source) {
+    throw new Error('未找到可复制的 OpenCLI 扩展源目录');
+  }
+
+  const sourceManifest = path.join(source, 'manifest.json');
+  if (!fs.existsSync(sourceManifest)) {
+    throw new Error(`扩展源目录缺少 manifest.json: ${source}`);
+  }
+
+  fs.mkdirSync(path.dirname(stableDir), { recursive: true });
+  // 使用固定目录，避免每次打包路径变化导致浏览器中的 unpacked 扩展失效
+  fs.cpSync(source, stableDir, { recursive: true, force: true });
+  return stableDir;
+}
+
+function resolveBrowserUserDataDir(): string {
+  const local = process.env['LOCALAPPDATA'];
+  if (local) {
+    return path.join(local, 'JDauto', 'EdgeUserData');
+  }
+  return path.join(PROJECT_ROOT, '.jdauto-edge-user-data');
+}
+
+function isStandardAccountProfile(name: string): boolean {
+  return /^账号\d+$/.test(name);
+}
+
+function getStandardProfileIndex(name: string): number | null {
+  const m = String(name).match(/^账号(\d+)$/);
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 10);
+  return Number.isInteger(n) ? n : null;
 }
 
 function nowIso(): string {
@@ -207,6 +318,7 @@ function startJob(payload: StartRequestBody): void {
       ELECTRON_RUN_AS_NODE: '1',
       JDAUTO_PASSWORD: password,
       ...(cfgPath ? { JDAUTO_CONFIG_PATH: cfgPath } : {}),
+      ...(process.env['JDAUTO_OPENCLI_CLI_PATH'] ? { JDAUTO_OPENCLI_CLI_PATH: process.env['JDAUTO_OPENCLI_CLI_PATH'] } : {}),
     },
     stdio: 'pipe',
   });
@@ -236,6 +348,226 @@ function stopJob(): void {
   }
   child.kill('SIGINT');
   addLog('已发送停止信号 (SIGINT)');
+}
+
+function nextPort(accounts: ChromeAccount[]): number {
+  const max = accounts.reduce((m, a) => {
+    if (typeof a.cdpPort === 'number' && Number.isFinite(a.cdpPort)) return Math.max(m, a.cdpPort);
+    return m;
+  }, 9220);
+  return max + 1;
+}
+
+function loadConfigFile(): { cfg: JDAutoConfig; configPath: string } {
+  const configPath = resolveConfigPath();
+  if (!configPath) {
+    throw new Error('未找到 accounts.json');
+  }
+  const raw = fs.readFileSync(configPath, 'utf8');
+  const cfg = JSON.parse(raw) as JDAutoConfig;
+  if (!Array.isArray(cfg.accounts)) cfg.accounts = [];
+  if (!Array.isArray(cfg.tasks)) cfg.tasks = [];
+  return { cfg, configPath };
+}
+
+function saveConfigFile(configPath: string, cfg: JDAutoConfig): void {
+  fs.writeFileSync(configPath, `${JSON.stringify(cfg, null, 2)}\n`, 'utf8');
+}
+
+function launchProfileWindow(browserPath: string, userDataDir: string, profileDir: string, cdpPort: number, extensionDir: string): void {
+  const args = [
+    `--user-data-dir=${userDataDir}`,
+    `--profile-directory=${profileDir}`,
+    `--remote-debugging-port=${cdpPort}`,
+    `--disable-extensions-except=${extensionDir}`,
+    `--load-extension=${extensionDir}`,
+    '--no-first-run',
+    '--no-default-browser-check',
+    'https://www.jd.com/',
+  ];
+  const proc = spawn(browserPath, args, {
+    detached: false,
+    stdio: 'ignore',
+    shell: false,
+    windowsHide: false,
+  });
+  proc.unref();
+}
+
+async function runNodeScript(scriptPath: string, scriptArgs: string[]): Promise<{
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(process.execPath, [scriptPath, ...scriptArgs], {
+      cwd: app.isPackaged ? process.resourcesPath : PROJECT_ROOT,
+      windowsHide: true,
+      env: {
+        ...process.env,
+        ELECTRON_RUN_AS_NODE: '1',
+        ...(process.env['JDAUTO_OPENCLI_CLI_PATH'] ? { JDAUTO_OPENCLI_CLI_PATH: process.env['JDAUTO_OPENCLI_CLI_PATH'] } : {}),
+      },
+      stdio: 'pipe',
+    });
+
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', (chunk) => { stdout += String(chunk); });
+    proc.stderr.on('data', (chunk) => { stderr += String(chunk); });
+    proc.on('error', reject);
+    proc.on('close', (code) => {
+      resolve({
+        exitCode: code ?? 1,
+        stdout,
+        stderr,
+      });
+    });
+  });
+}
+
+function addMultilineLog(text: string, isErr = false): void {
+  for (const line of text.split(/\r?\n/)) {
+    const clean = line.trim();
+    if (!clean) continue;
+    addLog(isErr ? `[ERR] ${clean}` : clean);
+  }
+}
+
+async function syncProfiles(): Promise<void> {
+  if (state.running) {
+    throw new Error('任务运行中，无法同步 Profile，请先停止任务');
+  }
+  const before = loadConfigFile();
+  const baselineStandardSet = new Set(
+    before.cfg.accounts
+      .map((a) => String(a.profile || ''))
+      .filter((p) => isStandardAccountProfile(p))
+  );
+
+  const scriptPath = resolveSyncScriptPath();
+  const cfgPath = resolveConfigPath();
+  const args: string[] = [];
+  if (cfgPath) {
+    args.push('--config', cfgPath);
+  }
+
+  addLog('开始同步 OpenCLI Profile...');
+  const result = await runNodeScript(scriptPath, args);
+  addMultilineLog(result.stdout, false);
+  addMultilineLog(result.stderr, true);
+
+  if (result.exitCode !== 0) {
+    addLog(`Profile 同步失败，exitCode=${result.exitCode}`);
+    throw new Error(`同步失败 (exitCode=${result.exitCode})`);
+  }
+
+  // 防止同步把历史连接的标准账号（例如 账号6..账号10）追加回来导致数量膨胀。
+  // 策略：标准账号仅允许保留“同步前已有集合”；非标准账号仍可新增。
+  const after = loadConfigFile();
+  const rawCount = after.cfg.accounts.length;
+  after.cfg.accounts = after.cfg.accounts.filter((a) => {
+    const profile = String(a.profile || '').trim();
+    if (!profile) return false;
+    if (!isStandardAccountProfile(profile)) return true;
+    return baselineStandardSet.has(profile);
+  });
+  if (after.cfg.accounts.length !== rawCount) {
+    addLog(`同步后标准账号已收敛: ${rawCount} -> ${after.cfg.accounts.length}`);
+    saveConfigFile(after.configPath, after.cfg);
+  }
+
+  const localDefault = process.env['OPENCLI_PROFILE'];
+  if (!localDefault) {
+    addLog('提示：opencli doctor 报“未选择默认 profile”通常不影响 JDauto（JDauto 全部命令都带 --profile）');
+  }
+  addLog('Profile 同步完成');
+}
+
+async function cleanupOpencliProfiles(): Promise<void> {
+  if (state.running) {
+    throw new Error('任务运行中，无法清理 OpenCLI profile，请先停止任务');
+  }
+  const scriptPath = resolveCleanupScriptPath();
+  addLog('开始清理 OpenCLI 历史 profile...');
+  const result = await runNodeScript(scriptPath, []);
+  addMultilineLog(result.stdout, false);
+  addMultilineLog(result.stderr, true);
+  if (result.exitCode !== 0) {
+    addLog(`OpenCLI profile 清理失败，exitCode=${result.exitCode}`);
+    throw new Error(`清理失败 (exitCode=${result.exitCode})`);
+  }
+  addLog('OpenCLI 历史 profile 清理完成');
+}
+
+async function initProfiles(payload: InitProfilesPayload): Promise<void> {
+  if (state.running) {
+    throw new Error('任务运行中，无法初始化 Profile，请先停止任务');
+  }
+
+  const count = Number(payload.count ?? 0);
+  if (!Number.isInteger(count) || count <= 0) {
+    throw new Error('初始化数量必须是大于 0 的整数');
+  }
+
+  const { cfg, configPath } = loadConfigFile();
+  const extensionDir = resolveExtensionDir();
+  const userDataDir = resolveBrowserUserDataDir();
+  const browserPath = cfg.accounts[0]?.chromePath || DEFAULT_EDGE_PATH;
+  if (!fs.existsSync(browserPath)) {
+    throw new Error(`浏览器路径不存在: ${browserPath}`);
+  }
+
+  addLog(`开始初始化 Profile，数量=${count}`);
+  addLog(`扩展目录: ${extensionDir}`);
+  addLog(`浏览器数据目录: ${userDataDir}`);
+
+  const beforeCount = cfg.accounts.length;
+  // 清理明显错误的自动账号，避免 "账号1 not"、"Browser Bridge profiles" 污染配置
+  cfg.accounts = cfg.accounts.filter((a) => {
+    const p = String(a.profile || '').trim();
+    if (!p) return false;
+    if (/^Browser Bridge profiles$/i.test(p)) return false;
+    if (/\bnot\b/i.test(p)) return false;
+    return true;
+  });
+  const afterInvalidCleanup = cfg.accounts.length;
+  if (afterInvalidCleanup < beforeCount) {
+    addLog(`已清理异常账号 ${beforeCount - afterInvalidCleanup} 个`);
+  }
+
+  // 一键初始化采用“重建标准账号”的方式，避免累计叠加
+  let port = nextPort([]);
+  const generated: ChromeAccount[] = [];
+  const targetProfileSet = new Set<string>();
+  for (let i = 1; i <= count; i++) {
+    const alias = `账号${i}`;
+    targetProfileSet.add(alias);
+    generated.push({
+      name: alias,
+      profile: alias,
+      browserProfileDir: alias,
+      browserUserDataDir: userDataDir,
+      chromePath: browserPath,
+      cdpPort: port++,
+    });
+  }
+  cfg.accounts = generated;
+
+  for (const account of generated) {
+    launchProfileWindow(
+      browserPath,
+      userDataDir,
+      account.browserProfileDir ?? account.profile,
+      account.cdpPort ?? 9221,
+      extensionDir
+    );
+    addLog(`已创建并启动: ${account.profile} (port=${account.cdpPort})`);
+  }
+
+  saveConfigFile(configPath, cfg);
+  addLog(`初始化完成，标准账号重建为 ${generated.length} 个`);
+  addLog('请先在新打开的浏览器窗口中登录账号并确认插件为 connected，再手动点击“同步Profile”');
 }
 
 function getConfigPreview(): { accountCount: number; accountNames: string[] } {
@@ -301,10 +633,14 @@ function createWindow(): void {
       <div class="row"><label for="maxRetries">提交重试次数</label><input id="maxRetries" type="number" min="1" value="3" /></div>
       <div class="row"><label for="prepareAhead">预热提前秒数</label><input id="prepareAhead" type="number" min="0" value="45" /></div>
       <div class="row"><label for="accounts">启用账号数</label><input id="accounts" type="number" min="1" placeholder="留空=全部账号" /></div>
+      <div class="row"><label for="initCount">初始化Profile数量</label><input id="initCount" type="number" min="1" value="1" /></div>
       <div class="row"><label for="manual">手动模式</label><input id="manual" type="checkbox" /></div>
       <div class="inline">
         <button id="startBtn">开始任务</button>
         <button id="stopBtn">停止任务</button>
+        <button id="syncBtn">同步Profile</button>
+        <button id="cleanBtn">清理OpenCLI</button>
+        <button id="initBtn">一键初始化Profile</button>
         <button id="refreshBtn">刷新状态</button>
       </div>
       <p class="muted">配置概览：<span id="cfg"></span></p>
@@ -330,6 +666,9 @@ function createWindow(): void {
       const cfgEl = document.getElementById('cfg');
       const startBtn = document.getElementById('startBtn');
       const stopBtn = document.getElementById('stopBtn');
+      const syncBtn = document.getElementById('syncBtn');
+      const cleanBtn = document.getElementById('cleanBtn');
+      const initBtn = document.getElementById('initBtn');
       const refreshBtn = document.getElementById('refreshBtn');
 
       function toNum(v) {
@@ -384,6 +723,52 @@ function createWindow(): void {
         }
       });
 
+      syncBtn.addEventListener('click', async () => {
+        syncBtn.disabled = true;
+        syncBtn.textContent = '同步中...';
+        try {
+          await ipcRenderer.invoke('jdauto:sync-profiles');
+          await refresh();
+          alert('Profile 同步完成');
+        } catch (err) {
+          alert(String(err));
+        } finally {
+          syncBtn.disabled = false;
+          syncBtn.textContent = '同步Profile';
+        }
+      });
+
+      cleanBtn.addEventListener('click', async () => {
+        cleanBtn.disabled = true;
+        cleanBtn.textContent = '清理中...';
+        try {
+          await ipcRenderer.invoke('jdauto:cleanup-opencli-profiles');
+          await refresh();
+          alert('OpenCLI 历史 profile 清理完成');
+        } catch (err) {
+          alert(String(err));
+        } finally {
+          cleanBtn.disabled = false;
+          cleanBtn.textContent = '清理OpenCLI';
+        }
+      });
+
+      initBtn.addEventListener('click', async () => {
+        const count = toNum(document.getElementById('initCount').value);
+        initBtn.disabled = true;
+        initBtn.textContent = '初始化中...';
+        try {
+          await ipcRenderer.invoke('jdauto:init-profiles', { count });
+          await refresh();
+          alert('Profile 初始化完成，请在新开的浏览器窗口中登录账号并确认插件连接');
+        } catch (err) {
+          alert(String(err));
+        } finally {
+          initBtn.disabled = false;
+          initBtn.textContent = '一键初始化Profile';
+        }
+      });
+
       refreshBtn.addEventListener('click', refresh);
       refresh();
       setInterval(refresh, 1000);
@@ -406,11 +791,50 @@ ipcMain.handle('jdauto:stop', () => {
   stopJob();
   return getState();
 });
+ipcMain.handle('jdauto:sync-profiles', async () => {
+  await syncProfiles();
+  // 普通同步也做一次轻量清理，移除明显污染项
+  const loaded = loadConfigFile();
+  const before = loaded.cfg.accounts.length;
+  loaded.cfg.accounts = loaded.cfg.accounts.filter((a) => {
+    const p = String(a.profile || '').trim();
+    if (!p) return false;
+    if (/^Browser Bridge profiles$/i.test(p)) return false;
+    if (/\bnot\b/i.test(p)) return false;
+    return true;
+  });
+  if (loaded.cfg.accounts.length !== before) {
+    addLog(`已清理异常账号 ${before - loaded.cfg.accounts.length} 个`);
+    saveConfigFile(loaded.configPath, loaded.cfg);
+  }
+  return getState();
+});
+ipcMain.handle('jdauto:cleanup-opencli-profiles', async () => {
+  await cleanupOpencliProfiles();
+  return getState();
+});
+ipcMain.handle('jdauto:init-profiles', async (_event, payload: InitProfilesPayload) => {
+  await initProfiles(payload ?? {});
+  return getState();
+});
 
 app.whenReady().then(() => {
   const cfgPath = resolveConfigPath();
   if (cfgPath) {
     process.env['JDAUTO_CONFIG_PATH'] = cfgPath;
+  }
+  try {
+    process.env['JDAUTO_OPENCLI_EXTENSION_DIR'] = ensureStableExtensionDir();
+    addLog(`扩展目录已就绪: ${process.env['JDAUTO_OPENCLI_EXTENSION_DIR']}`);
+  } catch {
+    // ignore: extension may not exist yet, only required when init/start with auto extension
+  }
+  const opencliCliPath = resolveOpenCliCliPath();
+  if (opencliCliPath) {
+    process.env['JDAUTO_OPENCLI_CLI_PATH'] = opencliCliPath;
+    addLog(`OpenCLI 已内置: ${opencliCliPath}`);
+  } else {
+    addLog('[WARN] 未找到内置 OpenCLI CLI，回退系统 opencli 命令');
   }
   createWindow();
   app.on('activate', () => {

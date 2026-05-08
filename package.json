@@ -15,12 +15,15 @@
     "pack:win:fresh": "npm run pack:win",
     "dev": "tsc --watch",
     "test": "node --test tests/*.test.ts",
-    "sync:profiles": "node scripts/sync-opencli-accounts.mjs"
+    "sync:profiles": "node scripts/sync-opencli-accounts.mjs",
+    "cleanup:opencli-profiles": "node scripts/cleanup-opencli-profiles.mjs"
   },
   "engines": {
     "node": ">=21"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@jackwener/opencli": "^1.7.14"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "electron": "^31.7.7",
@@ -52,6 +55,20 @@
       {
         "from": "config",
         "to": "config",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "scripts",
+        "to": "scripts",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "OpenCLI-main/extension",
+        "to": "opencli-extension",
         "filter": [
           "**/*"
         ]

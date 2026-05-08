@@ -15,6 +15,10 @@ export interface ChromeAccount {
   profile: string;
   /** 浏览器 profile 目录名（对应 --profile-directory），未提供时回退到 profile */
   browserProfileDir?: string;
+  /** 浏览器 User Data 目录（对应 --user-data-dir），用于隔离自动化环境 */
+  browserUserDataDir?: string;
+  /** OpenCLI profile 的 contextId（用于追踪映射关系） */
+  opencliContextId?: string;
   /** Chrome 可执行文件路径 */
   chromePath?: string;
   /** 独立调试端口（每个实例不同） */

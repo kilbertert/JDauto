@@ -6,6 +6,7 @@
  */
 
 import { spawn, ChildProcess } from 'node:child_process';
+import * as fs from 'node:fs';
 import { logger } from './utils/logger.js';
 import * as opencli from './commands/opencli-wrap.js';
 import type { ChromeAccount } from './config.js';
@@ -26,6 +27,8 @@ function launchChrome(account: ChromeAccount): ChildProcess {
   const chromePath = account.chromePath ?? DEFAULT_CHROME_PATH;
   const port = account.cdpPort ?? 9221;
   const profileDir = account.browserProfileDir ?? account.profile;
+  const userDataDir = account.browserUserDataDir;
+  const extensionDir = process.env['JDAUTO_OPENCLI_EXTENSION_DIR'];
 
   const args = [
     `--profile-directory=${profileDir}`,
@@ -33,7 +36,15 @@ function launchChrome(account: ChromeAccount): ChildProcess {
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-popup-blocking',
+    'https://www.jd.com/',
   ];
+  if (userDataDir) {
+    args.push(`--user-data-dir=${userDataDir}`);
+  }
+  if (extensionDir && fs.existsSync(extensionDir)) {
+    args.push(`--disable-extensions-except=${extensionDir}`);
+    args.push(`--load-extension=${extensionDir}`);
+  }
 
   logger.info(account.name, `启动 Chrome (profileDir=${profileDir}, opencli=${account.profile}, port=${port})...`);
   return spawn(chromePath, args, {

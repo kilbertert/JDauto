@@ -29,3 +29,9 @@ npm run pack:win
 ```bash
 npm run pack:win:fresh
 ```
+
+## 内置运行时说明（EXE）
+
+- 打包版 EXE 已内置运行时与 OpenCLI CLI，不需要额外安装系统 `Node.js` 与全局 `opencli`。
+- 仍需本机安装 Edge/Chrome（用于 Browser Bridge 扩展与实际下单流程）。
+- 如果终端环境也要手动运行 `opencli` 命令，再单独安装全局 `@jackwener/opencli` 即可。
