@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../config.js';
 import type { JDAutoConfig, ChromeAccount } from '../config.js';
+import { resolveBrowserExecutablePath } from '../browser-path.js';
 
 interface StartRequestBody {
   sku?: string;
@@ -34,12 +35,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const MAX_LOG_LINES = 800;
-const DEFAULT_EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const DAEMON_READY_CACHE_MS = 30_000;
 
 let mainWindow: BrowserWindow | null = null;
 let child: ChildProcessWithoutNullStreams | null = null;
 let stdoutBuffer = '';
 let stderrBuffer = '';
+let daemonWarmupPromise: Promise<void> | null = null;
+let lastDaemonReadyAt = 0;
 
 const state: RunState = {
   running: false,
@@ -112,12 +115,24 @@ function resolveCleanupScriptPath(): string {
 function resolveOpenCliCliPath(): string | null {
   const envPath = process.env['JDAUTO_OPENCLI_CLI_PATH'];
   if (envPath && fs.existsSync(envPath)) return envPath;
-  const devPath = path.join(PROJECT_ROOT, 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
-  const appAsarPath = path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
-  const appUnpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js');
+  const devPath = path.join(PROJECT_ROOT, 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js');
+  const bundledResourcePath = path.join(process.resourcesPath, 'opencli-package', 'dist', 'src', 'main.js');
+  const appAsarPath = path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js');
+  const appUnpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js');
   return app.isPackaged
-    ? findFirstExisting([appAsarPath, appUnpackedPath, devPath])
-    : findFirstExisting([devPath, appAsarPath, appUnpackedPath]);
+    ? findFirstExisting([bundledResourcePath, appAsarPath, appUnpackedPath, devPath])
+    : findFirstExisting([devPath, bundledResourcePath, appAsarPath, appUnpackedPath]);
+}
+
+function resolveNodeRuntimePath(): string {
+  const envPath = process.env['JDAUTO_NODE_PATH'];
+  if (envPath && fs.existsSync(envPath)) return envPath;
+  const binary = process.platform === 'win32' ? 'node.exe' : 'node';
+  const devPath = path.join(PROJECT_ROOT, 'vendor', 'node-runtime', binary);
+  const packagedPath = path.join(process.resourcesPath, 'node-runtime', binary);
+  return app.isPackaged
+    ? (findFirstExisting([packagedPath, devPath]) ?? process.execPath)
+    : (findFirstExisting([devPath, packagedPath]) ?? process.execPath);
 }
 
 function resolveExtensionDir(): string {
@@ -194,9 +209,83 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function shouldDisplayLog(line: string): boolean {
+  const text = stripAnsi(line).trim();
+  if (!text) return false;
+
+  const keepPatterns = [
+    /^启动任务:/,
+    /^任务结束:/,
+    /^已发送停止信号/,
+    /^开始同步 OpenCLI Profile/,
+    /^Profile 同步完成/,
+    /^Profile 同步失败/,
+    /^开始设置默认 Profile:/,
+    /^默认 Profile 已设置:/,
+    /^设置默认 Profile 失败:/,
+    /^未检测到已连接 OpenCLI Profile，跳过设置默认 Profile/,
+    /^开始启动 OpenCLI daemon/,
+    /^OpenCLI daemon 已就绪/,
+    /^OpenCLI daemon 启动失败:/,
+    /^浏览器可执行文件:/,
+    /^开始清理 OpenCLI 历史 profile/,
+    /^OpenCLI 历史 profile 清理完成/,
+    /^OpenCLI profile 清理失败/,
+    /^开始初始化 Profile/,
+    /^初始化完成/,
+    /^已创建并启动:/,
+    /^已清理异常账号/,
+    /^同步后标准账号已收敛:/,
+    /^已收敛账号列表:/,
+    /^请先在新打开的浏览器窗口中登录账号并确认插件为 connected/,
+    /\[(Main|Manager|Scheduler|账号\d+)\]/,
+    /\b(PREPARE|EXECUTE|PAYMENT)\b/,
+    /Browser Bridge/,
+    /连接超时/,
+    /没有可用账号/,
+    /\bFatal\b/,
+    /提交订单/,
+    /支付/,
+    /结算/,
+    /加购/,
+    /购物车/,
+    /任务/,
+  ];
+  if (keepPatterns.some((pattern) => pattern.test(text))) return true;
+
+  const dropPatterns = [
+    /^Node 运行时:/,
+    /^OpenCLI 已内置:/,
+    /^扩展目录已就绪:/,
+    /^扩展目录:/,
+    /^浏览器数据目录:/,
+    /^提示：opencli doctor/,
+    /^Extension update available:/i,
+    /^Download:/,
+    /^Current runtime:/,
+    /^Upgrade Node\.js/i,
+    /^Usage: opencli\b/i,
+    /^Options:/,
+    /^Commands:/,
+    /^error: unknown command\b/i,
+    /^at /,
+    /^node:/,
+    /^const err = new Error/,
+    /^throw new /,
+    /^pid:/,
+    /^stdout:/,
+    /^stderr:/,
+    /^signal:/,
+    /^status:/,
+    /^output:\s*\[/,
+  ];
+  if (dropPatterns.some((pattern) => pattern.test(text))) return false;
+  return false;
+}
+
 function addLog(line: string): void {
   const clean = stripAnsi(line).trim();
-  if (!clean) return;
+  if (!clean || !shouldDisplayLog(clean)) return;
   const ts = formatLocalTime(new Date());
   state.logs.push(`${ts} ${clean}`);
   if (state.logs.length > MAX_LOG_LINES) {
@@ -240,10 +329,15 @@ function ensureDistBuilt(): void {
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function buildStartArgs(payload: StartRequestBody): {
   args: string[];
   password: string;
   commandPreview: string;
+  startSummary: string;
 } {
   const sku = String(payload.sku ?? '').trim();
   const time = String(payload.time ?? '').trim();
@@ -288,16 +382,55 @@ function buildStartArgs(payload: StartRequestBody): {
   if (manual) args.push('--manual');
 
   const commandPreview = `node dist/index.js --sku ${sku} --time ${normalizedTime} --max-retries ${maxRetries} --prepare-ahead ${prepareAhead}${manual ? ' --manual' : ''}`;
-  return { args, password, commandPreview };
+  const startSummary = `启动任务: SKU=${sku} 抢购时间=${normalizedTime} 启用账号=${accountsRaw ? String(accountsRaw) : '全部'}${manual ? ' 手动模式=是' : ''}`;
+  return { args, password, commandPreview, startSummary };
 }
 
-function startJob(payload: StartRequestBody): void {
+async function ensureOpenCliDaemonReady(reason: string, force = false): Promise<void> {
+  const now = Date.now();
+  if (!force && daemonWarmupPromise) {
+    await daemonWarmupPromise;
+    return;
+  }
+  if (!force && lastDaemonReadyAt > 0 && now - lastDaemonReadyAt < DAEMON_READY_CACHE_MS) {
+    return;
+  }
+
+  daemonWarmupPromise = (async () => {
+    addLog(`开始启动 OpenCLI daemon (${reason})...`);
+    const result = await runOpenCliCommand(['doctor']);
+    const combined = stripAnsi(`${result.stdout}\n${result.stderr}`);
+    const daemonRunning = /\[OK\]\s+Daemon:\s+running\b/i.test(combined);
+    if (!daemonRunning) {
+      addMultilineLog(result.stdout, false);
+      addMultilineLog(result.stderr, true);
+      addLog(`OpenCLI daemon 启动失败: ${reason}`);
+      throw new Error(`OpenCLI daemon 未就绪: ${reason}`);
+    }
+
+    if (/Starting daemon/i.test(combined)) {
+      await sleep(1500);
+    }
+
+    lastDaemonReadyAt = Date.now();
+    addLog('OpenCLI daemon 已就绪');
+  })();
+
+  try {
+    await daemonWarmupPromise;
+  } finally {
+    daemonWarmupPromise = null;
+  }
+}
+
+async function startJob(payload: StartRequestBody): Promise<void> {
   if (state.running) {
     throw new Error('任务已在运行，请先停止当前任务');
   }
 
   ensureDistBuilt();
-  const { args, password, commandPreview } = buildStartArgs(payload);
+  await ensureOpenCliDaemonReady('开始任务前');
+  const { args, password, commandPreview, startSummary } = buildStartArgs(payload);
 
   state.running = true;
   state.startedAt = nowIso();
@@ -308,9 +441,10 @@ function startJob(payload: StartRequestBody): void {
   stdoutBuffer = '';
   stderrBuffer = '';
 
-  addLog(`启动任务: ${commandPreview}`);
+  addLog(startSummary);
   const cfgPath = resolveConfigPath();
-  child = spawn(process.execPath, args, {
+  const nodeExec = resolveNodeRuntimePath();
+  child = spawn(nodeExec, args, {
     cwd: app.isPackaged ? process.resourcesPath : PROJECT_ROOT,
     windowsHide: true,
     env: {
@@ -318,6 +452,7 @@ function startJob(payload: StartRequestBody): void {
       ELECTRON_RUN_AS_NODE: '1',
       JDAUTO_PASSWORD: password,
       ...(cfgPath ? { JDAUTO_CONFIG_PATH: cfgPath } : {}),
+      JDAUTO_NODE_PATH: nodeExec,
       ...(process.env['JDAUTO_OPENCLI_CLI_PATH'] ? { JDAUTO_OPENCLI_CLI_PATH: process.env['JDAUTO_OPENCLI_CLI_PATH'] } : {}),
     },
     stdio: 'pipe',
@@ -400,12 +535,14 @@ async function runNodeScript(scriptPath: string, scriptArgs: string[]): Promise<
   stderr: string;
 }> {
   return new Promise((resolve, reject) => {
-    const proc = spawn(process.execPath, [scriptPath, ...scriptArgs], {
+    const nodeExec = resolveNodeRuntimePath();
+    const proc = spawn(nodeExec, [scriptPath, ...scriptArgs], {
       cwd: app.isPackaged ? process.resourcesPath : PROJECT_ROOT,
       windowsHide: true,
       env: {
         ...process.env,
         ELECTRON_RUN_AS_NODE: '1',
+        JDAUTO_NODE_PATH: nodeExec,
         ...(process.env['JDAUTO_OPENCLI_CLI_PATH'] ? { JDAUTO_OPENCLI_CLI_PATH: process.env['JDAUTO_OPENCLI_CLI_PATH'] } : {}),
       },
       stdio: 'pipe',
@@ -426,6 +563,77 @@ async function runNodeScript(scriptPath: string, scriptArgs: string[]): Promise<
   });
 }
 
+async function runOpenCliCommand(cliArgs: string[]): Promise<{
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}> {
+  const cliEntry = resolveOpenCliCliPath();
+  if (!cliEntry) {
+    throw new Error('未找到 OpenCLI CLI 入口');
+  }
+  return new Promise((resolve, reject) => {
+    const nodeExec = resolveNodeRuntimePath();
+    const proc = spawn(nodeExec, [cliEntry, ...cliArgs], {
+      cwd: app.isPackaged ? process.resourcesPath : PROJECT_ROOT,
+      windowsHide: true,
+      env: {
+        ...process.env,
+        ELECTRON_RUN_AS_NODE: '1',
+        JDAUTO_NODE_PATH: nodeExec,
+        JDAUTO_OPENCLI_CLI_PATH: cliEntry,
+      },
+      stdio: 'pipe',
+    });
+
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', (chunk) => { stdout += String(chunk); });
+    proc.stderr.on('data', (chunk) => { stderr += String(chunk); });
+    proc.on('error', reject);
+    proc.on('close', (code) => {
+      resolve({
+        exitCode: code ?? 1,
+        stdout,
+        stderr,
+      });
+    });
+  });
+}
+
+interface ConnectedOpenCliProfile {
+  contextId: string;
+  alias: string;
+}
+
+function parseConnectedOpenCliProfiles(raw: string): ConnectedOpenCliProfile[] {
+  const lines = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+  const profiles: ConnectedOpenCliProfile[] = [];
+  for (const line of lines) {
+    if (/^Connected Browser Bridge profiles/i.test(line)) continue;
+    if (/^Disconnected saved profiles:/i.test(line)) break;
+    if (!/\bconnected\b/i.test(line)) continue;
+    if (/\bnot\s+connected\b/i.test(line)) continue;
+    const m = line.match(/^([^\s]+)(?:\s+[—-]\s+(.+?))?\s+connected\b/i);
+    if (!m) continue;
+    profiles.push({
+      contextId: String(m[1] || '').trim(),
+      alias: String(m[2] || '').trim(),
+    });
+  }
+  return profiles;
+}
+
+async function getConnectedOpenCliProfiles(): Promise<ConnectedOpenCliProfile[]> {
+  const result = await runOpenCliCommand(['profile', 'list']);
+  if (result.exitCode !== 0) {
+    addMultilineLog(result.stdout, false);
+    addMultilineLog(result.stderr, true);
+    throw new Error(`读取 OpenCLI profile 列表失败 (exitCode=${result.exitCode})`);
+  }
+  return parseConnectedOpenCliProfiles(result.stdout);
+}
+
 function addMultilineLog(text: string, isErr = false): void {
   for (const line of text.split(/\r?\n/)) {
     const clean = line.trim();
@@ -438,6 +646,7 @@ async function syncProfiles(): Promise<void> {
   if (state.running) {
     throw new Error('任务运行中，无法同步 Profile，请先停止任务');
   }
+  await ensureOpenCliDaemonReady('同步 Profile 前');
   const before = loadConfigFile();
   const baselineStandardSet = new Set(
     before.cfg.accounts
@@ -477,10 +686,42 @@ async function syncProfiles(): Promise<void> {
     saveConfigFile(after.configPath, after.cfg);
   }
 
-  const localDefault = process.env['OPENCLI_PROFILE'];
-  if (!localDefault) {
-    addLog('提示：opencli doctor 报“未选择默认 profile”通常不影响 JDauto（JDauto 全部命令都带 --profile）');
+  const connectedProfiles = await getConnectedOpenCliProfiles();
+  if (connectedProfiles.length === 0) {
+    addLog('未检测到已连接 OpenCLI Profile，跳过设置默认 Profile');
+    addLog('Profile 同步完成');
+    return;
   }
+
+  const connectedContextSet = new Set(connectedProfiles.map((p) => p.contextId));
+  const preferredAccount =
+    after.cfg.accounts.find((a) => String(a.profile || '').trim() === '账号1' && a.opencliContextId && connectedContextSet.has(a.opencliContextId))
+    || after.cfg.accounts.find((a) => Boolean(a.opencliContextId && connectedContextSet.has(a.opencliContextId) && isStandardAccountProfile(String(a.profile || '').trim())))
+    || after.cfg.accounts.find((a) => Boolean(a.opencliContextId && connectedContextSet.has(a.opencliContextId)));
+
+  const defaultProfileArg =
+    preferredAccount?.opencliContextId
+    || connectedProfiles.find((p) => p.alias === '账号1')?.contextId
+    || connectedProfiles[0]?.contextId;
+
+  const defaultProfileLabel =
+    preferredAccount?.profile
+    || connectedProfiles.find((p) => p.alias === '账号1')?.alias
+    || connectedProfiles[0]?.alias
+    || connectedProfiles[0]?.contextId;
+
+  if (defaultProfileArg) {
+    addLog(`开始设置默认 Profile: ${defaultProfileLabel}`);
+    const defaultResult = await runOpenCliCommand(['profile', 'use', defaultProfileArg]);
+    addMultilineLog(defaultResult.stdout, false);
+    addMultilineLog(defaultResult.stderr, true);
+    if (defaultResult.exitCode !== 0) {
+      addLog(`设置默认 Profile 失败: ${defaultProfileLabel} (exitCode=${defaultResult.exitCode})`);
+      throw new Error(`设置默认 Profile 失败: ${defaultProfileLabel}`);
+    }
+    addLog(`默认 Profile 已设置: ${defaultProfileLabel}`);
+  }
+
   addLog('Profile 同步完成');
 }
 
@@ -504,6 +745,7 @@ async function initProfiles(payload: InitProfilesPayload): Promise<void> {
   if (state.running) {
     throw new Error('任务运行中，无法初始化 Profile，请先停止任务');
   }
+  await ensureOpenCliDaemonReady('初始化 Profile 前');
 
   const count = Number(payload.count ?? 0);
   if (!Number.isInteger(count) || count <= 0) {
@@ -513,12 +755,13 @@ async function initProfiles(payload: InitProfilesPayload): Promise<void> {
   const { cfg, configPath } = loadConfigFile();
   const extensionDir = resolveExtensionDir();
   const userDataDir = resolveBrowserUserDataDir();
-  const browserPath = cfg.accounts[0]?.chromePath || DEFAULT_EDGE_PATH;
+  const browserPath = resolveBrowserExecutablePath(cfg.accounts[0]?.chromePath);
   if (!fs.existsSync(browserPath)) {
     throw new Error(`浏览器路径不存在: ${browserPath}`);
   }
 
   addLog(`开始初始化 Profile，数量=${count}`);
+  addLog(`浏览器可执行文件: ${browserPath}`);
   addLog(`扩展目录: ${extensionDir}`);
   addLog(`浏览器数据目录: ${userDataDir}`);
 
@@ -648,7 +891,6 @@ function createWindow(): void {
 
     <div class="card">
       <p>当前状态：<span id="running" class="status warn">未知</span></p>
-      <p>命令预览：<code id="cmd">-</code></p>
       <p class="muted" id="timing"></p>
     </div>
 
@@ -661,7 +903,6 @@ function createWindow(): void {
       const { ipcRenderer } = require('electron');
       const runningEl = document.getElementById('running');
       const logsEl = document.getElementById('logs');
-      const cmdEl = document.getElementById('cmd');
       const timingEl = document.getElementById('timing');
       const cfgEl = document.getElementById('cfg');
       const startBtn = document.getElementById('startBtn');
@@ -670,16 +911,28 @@ function createWindow(): void {
       const cleanBtn = document.getElementById('cleanBtn');
       const initBtn = document.getElementById('initBtn');
       const refreshBtn = document.getElementById('refreshBtn');
+      const editableInputIds = ['sku', 'time', 'password', 'maxRetries', 'prepareAhead', 'accounts', 'initCount', 'manual'];
 
       function toNum(v) {
         if (v === '' || v === null || v === undefined) return undefined;
         return Number(v);
       }
 
+      function ensureInputsEditable() {
+        for (const id of editableInputIds) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.disabled = false;
+          if (Object.prototype.hasOwnProperty.call(el, 'readOnly')) {
+            el.readOnly = false;
+          }
+        }
+      }
+
       function renderState(s) {
+        ensureInputsEditable();
         runningEl.textContent = s.running ? '运行中' : '空闲';
         runningEl.className = 'status ' + (s.running ? 'ok' : 'warn');
-        cmdEl.textContent = s.command || '-';
         timingEl.textContent = 'startedAt=' + (s.startedAt || '-') + ' | endedAt=' + (s.endedAt || '-') + ' | pid=' + (s.pid || '-') + ' | exitCode=' + (s.exitCode ?? '-');
         logsEl.textContent = (s.logs || []).join('\\n');
         logsEl.scrollTop = logsEl.scrollHeight;
@@ -783,8 +1036,8 @@ function createWindow(): void {
 }
 
 ipcMain.handle('jdauto:get-state', () => getState());
-ipcMain.handle('jdauto:start', (_event, payload: StartRequestBody) => {
-  startJob(payload);
+ipcMain.handle('jdauto:start', async (_event, payload: StartRequestBody) => {
+  await startJob(payload);
   return getState();
 });
 ipcMain.handle('jdauto:stop', () => {
@@ -830,6 +1083,12 @@ app.whenReady().then(() => {
     // ignore: extension may not exist yet, only required when init/start with auto extension
   }
   const opencliCliPath = resolveOpenCliCliPath();
+  const nodeRuntimePath = resolveNodeRuntimePath();
+  const browserPath = resolveBrowserExecutablePath();
+  process.env['JDAUTO_NODE_PATH'] = nodeRuntimePath;
+  process.env['JDAUTO_BROWSER_PATH'] = browserPath;
+  addLog(`Node 运行时: ${nodeRuntimePath}`);
+  addLog(`浏览器可执行文件: ${browserPath}`);
   if (opencliCliPath) {
     process.env['JDAUTO_OPENCLI_CLI_PATH'] = opencliCliPath;
     addLog(`OpenCLI 已内置: ${opencliCliPath}`);
@@ -837,6 +1096,11 @@ app.whenReady().then(() => {
     addLog('[WARN] 未找到内置 OpenCLI CLI，回退系统 opencli 命令');
   }
   createWindow();
+  if (opencliCliPath) {
+    void ensureOpenCliDaemonReady('应用启动', true).catch((err) => {
+      addLog(`[ERR] ${String(err)}`);
+    });
+  }
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

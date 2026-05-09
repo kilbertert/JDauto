@@ -12,10 +12,11 @@ function parseArgs(argv) {
 
 function runOpenCli(cmd) {
   const cliPath = resolveOpenCliCliPath();
+  const nodeExec = resolveNodeExecutable();
   if (cliPath) {
     const args = cmd.trim().split(/\s+/).slice(1); // strip leading `opencli`
     const argLine = args.map((x) => quoteArg(x)).join(' ');
-    return execSync(`"${process.execPath}" "${cliPath}" ${argLine}`, {
+    return execSync(`"${nodeExec}" "${cliPath}" ${argLine}`, {
       encoding: 'utf8',
       env: {
         ...process.env,
@@ -27,6 +28,12 @@ function runOpenCli(cmd) {
   return execSync(cmd, { encoding: 'utf8' });
 }
 
+function resolveNodeExecutable() {
+  const envPath = process.env.JDAUTO_NODE_PATH;
+  if (envPath && fs.existsSync(envPath)) return envPath;
+  return process.execPath;
+}
+
 function quoteArg(v) {
   const s = String(v);
   if (!s.includes(' ')) return s;
@@ -35,13 +42,13 @@ function quoteArg(v) {
 
 function resolveOpenCliCliPath() {
   const envPath = process.env.JDAUTO_OPENCLI_CLI_PATH;
-  if (envPath && fs.existsSync(envPath)) return envPath;
+  if (envPath) return envPath;
   const candidates = [
-    path.join(process.cwd(), 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(process.cwd(), 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(path.dirname(process.execPath), 'resources', 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(path.dirname(process.execPath), 'resources', 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(os.homedir(), '.opencli', 'cli.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'opencli-package', 'dist', 'src', 'main.js'),
+    path.join(process.cwd(), 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(process.cwd(), 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
   ];
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
@@ -87,12 +94,17 @@ function saveProfileConfig(filePath, cfg) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   let output = '';
+  let opencliFailed = false;
   try {
     output = runOpenCli('opencli profile list');
   } catch (err) {
+    opencliFailed = true;
     const out = String(err?.stdout || '');
     const errText = String(err?.stderr || '');
     output = `${out}\n${errText}`;
+  }
+  if (opencliFailed) {
+    throw new Error(`opencli profile list 执行失败:\n${output.trim()}`);
   }
 
   const connectedIds = parseConnectedContextIds(output);

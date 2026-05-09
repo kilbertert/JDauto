@@ -104,17 +104,26 @@ function findFirstExisting(paths: string[]): string | null {
 
 function resolveBundledOpenCliCliPath(): string | null {
   const envPath = process.env['JDAUTO_OPENCLI_CLI_PATH'];
-  if (envPath && fs.existsSync(envPath)) return envPath;
+  if (envPath) return envPath;
 
-  const devPath = path.resolve(__dirname, '../../node_modules/@jackwener/opencli/dist/cli.js');
+  const devPath = path.resolve(__dirname, '../../node_modules/@jackwener/opencli/dist/src/main.js');
+  const bundledResourcePath = process.resourcesPath
+    ? path.join(process.resourcesPath, 'opencli-package', 'dist', 'src', 'main.js')
+    : '';
   const appAsarPath = process.resourcesPath
-    ? path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js')
+    ? path.join(process.resourcesPath, 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js')
     : '';
   const appUnpackedPath = process.resourcesPath
-    ? path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js')
+    ? path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js')
     : '';
 
-  return findFirstExisting([devPath, appAsarPath, appUnpackedPath]);
+  return findFirstExisting([bundledResourcePath, appAsarPath, appUnpackedPath, devPath]);
+}
+
+function resolveNodeExecutable(): string {
+  const envPath = process.env['JDAUTO_NODE_PATH'];
+  if (envPath && fs.existsSync(envPath)) return envPath;
+  return process.execPath;
 }
 
 /**
@@ -130,9 +139,10 @@ async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000):
 
   return new Promise((resolve) => {
     const bundledCliPath = resolveBundledOpenCliCliPath();
+    const nodeExec = resolveNodeExecutable();
     const isWindows = process.platform === 'win32';
     const spawnCmd = bundledCliPath
-      ? process.execPath
+      ? nodeExec
       : (isWindows ? 'powershell.exe' : OPENCLI_CMD);
     const spawnArgs = bundledCliPath
       ? [bundledCliPath, ...fullArgs]

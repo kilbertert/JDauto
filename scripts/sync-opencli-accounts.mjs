@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 
-const DEFAULT_EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const DEFAULT_BROWSER_CANDIDATES = [
+  process.env.JDAUTO_BROWSER_PATH,
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+].filter(Boolean);
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'config', 'accounts.json');
 
 function parseArgs(argv) {
@@ -84,10 +89,11 @@ function getNextAlias(usedAliases, prefix, startIndex) {
 
 function runOpenCli(cmd) {
   const cliPath = resolveOpenCliCliPath();
+  const nodeExec = resolveNodeExecutable();
   if (cliPath) {
     const args = cmd.trim().split(/\s+/).slice(1); // strip leading `opencli`
     const argLine = args.map((x) => quoteArg(x)).join(' ');
-    return execSync(`"${process.execPath}" "${cliPath}" ${argLine}`, {
+    return execSync(`"${nodeExec}" "${cliPath}" ${argLine}`, {
       encoding: 'utf8',
       env: {
         ...process.env,
@@ -99,6 +105,12 @@ function runOpenCli(cmd) {
   return execSync(cmd, { encoding: 'utf8' });
 }
 
+function resolveNodeExecutable() {
+  const envPath = process.env.JDAUTO_NODE_PATH;
+  if (envPath && fs.existsSync(envPath)) return envPath;
+  return process.execPath;
+}
+
 function quoteArg(v) {
   const s = String(v);
   if (!s.includes(' ')) return s;
@@ -107,18 +119,26 @@ function quoteArg(v) {
 
 function resolveOpenCliCliPath() {
   const envPath = process.env.JDAUTO_OPENCLI_CLI_PATH;
-  if (envPath && fs.existsSync(envPath)) return envPath;
+  if (envPath) return envPath;
   const candidates = [
-    path.join(process.cwd(), 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(process.cwd(), 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(path.dirname(process.execPath), 'resources', 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(path.dirname(process.execPath), 'resources', 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'cli.js'),
-    path.join(os.homedir(), '.opencli', 'cli.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'opencli-package', 'dist', 'src', 'main.js'),
+    path.join(process.cwd(), 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'app.asar', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(path.dirname(process.execPath), 'resources', 'app.asar.unpacked', 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
+    path.join(process.cwd(), 'node_modules', '@jackwener', 'opencli', 'dist', 'src', 'main.js'),
   ];
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
   return null;
+}
+
+function resolveBrowserPath(preferredPath) {
+  for (const p of DEFAULT_BROWSER_CANDIDATES) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  if (preferredPath && fs.existsSync(preferredPath)) return preferredPath;
+  return preferredPath || DEFAULT_BROWSER_CANDIDATES[0];
 }
 
 function main() {
@@ -151,7 +171,7 @@ function main() {
     connected.map((p) => String(p.alias || '').trim()).filter(Boolean)
   );
   const availableStandardAliases = standardAliasesFromConfig.filter((x) => !connectedNamedAliases.has(x));
-  const chromePath = accounts[0]?.chromePath || DEFAULT_EDGE_PATH;
+  const chromePath = resolveBrowserPath(accounts[0]?.chromePath);
   const browserUserDataDir = accounts[0]?.browserUserDataDir;
 
   let nextPort = getNextPort(accounts);
@@ -202,21 +222,10 @@ function main() {
   );
   for (const acc of accounts) {
     const alias = String(acc.profile || '');
+    acc.chromePath = resolveBrowserPath(acc.chromePath || chromePath);
     if (contextByAlias.has(alias)) {
       acc.opencliContextId = contextByAlias.get(alias);
     }
-  }
-
-  // 默认 profile：优先账号1，其次第一个已连接 contextId
-  const hasAliasAccount1 = connected.some((p) => p.alias === '账号1');
-  try {
-    if (hasAliasAccount1) {
-      runOpenCli('opencli profile use 账号1');
-    } else if (connected[0]?.contextId) {
-      runOpenCli(`opencli profile use ${connected[0].contextId}`);
-    }
-  } catch {
-    // ignore: default selection best effort
   }
 
   cfg.accounts = accounts;

@@ -9,9 +9,11 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare:node-runtime": "node scripts/prepare-bundled-node.mjs",
+    "prepare:chromium": "node scripts/prepare-bundled-chromium.mjs",
     "start": "node dist/index.js",
     "desktop": "electron dist/desktop/main.js",
-    "pack:win": "powershell -NoProfile -Command \"$root='dist-electron'; New-Item -ItemType Directory -Force -Path $root | Out-Null; $out=Join-Path $root (Get-Date -Format 'yyyyMMdd-HHmmss'); npm run build; npx electron-builder --win nsis --config.directories.output=$out\"",
+    "pack:win": "powershell -NoProfile -Command \"$root='dist-electron'; New-Item -ItemType Directory -Force -Path $root | Out-Null; $out=Join-Path $root (Get-Date -Format 'yyyyMMdd-HHmmss'); npm run prepare:node-runtime; npm run prepare:chromium; npm run build; npx electron-builder --win nsis --config.directories.output=$out\"",
     "pack:win:fresh": "npm run pack:win",
     "dev": "tsc --watch",
     "test": "node --test tests/*.test.ts",
@@ -25,6 +27,7 @@
     "@jackwener/opencli": "^1.7.14"
   },
   "devDependencies": {
+    "@puppeteer/browsers": "^2.13.1",
     "@types/node": "^22.0.0",
     "electron": "^31.7.7",
     "electron-builder": "^24.13.3",
@@ -69,6 +72,34 @@
       {
         "from": "OpenCLI-main/extension",
         "to": "opencli-extension",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "node_modules/@jackwener/opencli",
+        "to": "opencli-package",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "node_modules",
+        "to": "node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/node-runtime",
+        "to": "node-runtime",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/chromium",
+        "to": "chromium",
         "filter": [
           "**/*"
         ]

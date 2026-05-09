@@ -10,8 +10,7 @@ import * as fs from 'node:fs';
 import { logger } from './utils/logger.js';
 import * as opencli from './commands/opencli-wrap.js';
 import type { ChromeAccount } from './config.js';
-
-const DEFAULT_CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+import { resolveBrowserExecutablePath } from './browser-path.js';
 
 export interface ChromeInstance {
   account: ChromeAccount;
@@ -24,7 +23,7 @@ export interface ChromeInstance {
  * 启动一个 Chrome 实例
  */
 function launchChrome(account: ChromeAccount): ChildProcess {
-  const chromePath = account.chromePath ?? DEFAULT_CHROME_PATH;
+  const chromePath = resolveBrowserExecutablePath(account.chromePath);
   const port = account.cdpPort ?? 9221;
   const profileDir = account.browserProfileDir ?? account.profile;
   const userDataDir = account.browserUserDataDir;
