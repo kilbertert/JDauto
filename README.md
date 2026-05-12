@@ -98,7 +98,7 @@ npm run desktop
 
 ### 桌面端操作示意
 
-![JDauto 桌面端注释说明图](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/20260512_232233_%E5%9F%BA%E4%BA%8E%E5%8F%82%E8%80%83%E5%9B%BE%E7%89%87%E4%B8%AD%E7%9A%84_JDauto.png?Expires=1778600183&OSSAccessKeyId=TMP.3Kw7hQEcdviRL1vBTMTqrcZKnJ2wgYujDmTVaWd4M2J2v2m2HdNwphqLR2NvJNHpRKuo1ybXWMMoD1bU3xypU3Q2xqubiB&Signature=N4roWLKJvmi3JaHlXcPbzUwz5os%3D)
+![JDauto 桌面端注释说明图](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/20260512_232233_%E5%9F%BA%E4%BA%8E%E5%8F%82%E8%80%83%E5%9B%BE%E7%89%87%E4%B8%AD%E7%9A%84_JDauto.png)
 
 上图展示了桌面端主要输入项、初始化按钮与任务控制按钮，适合作为首次使用时的快速参考。
 
