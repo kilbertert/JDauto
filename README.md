@@ -2,7 +2,8 @@
 
 JDauto 是一个基于 `OpenCLI Browser Bridge` 的京东自动抢购工具，支持多账号并行、预热到提交页、卡点提交订单、自动支付，以及桌面端日志查看与 Windows 打包。
 
-> 仅供学习、研究自动化流程与浏览器编排使用。请在遵守平台规则、法律法规和账号安全要求的前提下使用，并自行承担使用风险。
+> 本项目仅供学习、交流与自动化技术研究使用，不用于任何商业用途或违规用途。
+> 请在遵守平台规则、法律法规和账号安全要求的前提下使用，并自行承担使用风险。
 
 ## 功能特性
 
@@ -94,6 +95,12 @@ npm run desktop
 ```
 
 桌面窗口可直接填写 SKU、抢购时间、支付密码、账号数等参数，并查看实时日志。
+
+### 桌面端操作示意
+
+![JDauto 桌面端注释说明图](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/20260512_232233_%E5%9F%BA%E4%BA%8E%E5%8F%82%E8%80%83%E5%9B%BE%E7%89%87%E4%B8%AD%E7%9A%84_JDauto.png?Expires=1778600183&OSSAccessKeyId=TMP.3Kw7hQEcdviRL1vBTMTqrcZKnJ2wgYujDmTVaWd4M2J2v2m2HdNwphqLR2NvJNHpRKuo1ybXWMMoD1bU3xypU3Q2xqubiB&Signature=N4roWLKJvmi3JaHlXcPbzUwz5os%3D)
+
+上图展示了桌面端主要输入项、初始化按钮与任务控制按钮，适合作为首次使用时的快速参考。
 
 ## 常用命令
 
