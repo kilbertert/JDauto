@@ -614,11 +614,17 @@ function parseConnectedOpenCliProfiles(raw: string): ConnectedOpenCliProfile[] {
     if (/^Disconnected saved profiles:/i.test(line)) break;
     if (!/\bconnected\b/i.test(line)) continue;
     if (/\bnot\s+connected\b/i.test(line)) continue;
-    const m = line.match(/^([^\s]+)(?:\s+[—-]\s+(.+?))?\s+connected\b/i);
+    const m = line.match(/^(\S+)(?:\s+(.+?))?\s+connected\b/i);
     if (!m) continue;
+    let alias = String(m[2] || '')
+      .replace(/\bdefault\b/gi, '')
+      .replace(/[—-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!alias) alias = '';
     profiles.push({
       contextId: String(m[1] || '').trim(),
-      alias: String(m[2] || '').trim(),
+      alias,
     });
   }
   return profiles;

@@ -25,6 +25,23 @@ export interface AutoPayStatus {
   status: string;
   error?: string;
   lastAction?: string;
+  timeline?: {
+    initAt?: number;
+    bootstrappedAt?: number;
+    clickEntryAt?: number;
+    passwordSetAt?: number;
+    clickFinalAt?: number;
+    doneAt?: number;
+  };
+}
+
+export interface PaymentDebugInfo {
+  href: string;
+  title: string;
+  hasPasswordInput: boolean;
+  payButtonCandidates: number;
+  autopayStatus: string;
+  autopayLastAction: string;
 }
 
 function pickOutputText(r: CommandResult): string {
@@ -52,7 +69,8 @@ function buildAutoPayBootstrapJs(passwordExpr: string): string {
     const old=window[KEY];
     if(old && typeof old.cleanup==='function'){ try{ old.cleanup(); }catch(_){} }
     const password=${passwordExpr};
-    const state={status:'running',error:'',lastAction:'init',startedAt:Date.now(),cleanup:null};
+    const now=()=>Date.now();
+    const state={status:'running',error:'',lastAction:'init',startedAt:now(),cleanup:null,timeline:{initAt:now()}};
     window[KEY]=state;
     const isVisible=(e)=>!!e&&e.offsetParent!==null;
     const hasText=(e,t)=>((e&&e.textContent)||'').replace(/\\s+/g,'').includes(t);
@@ -63,21 +81,22 @@ function buildAutoPayBootstrapJs(passwordExpr: string): string {
       .filter(e=>hasText(e,'立即支付')&&String(e.className||'').includes('base-button')&&isVisible(e)&&e.getBoundingClientRect().x<800)[0]||null;
     const fillPwd=()=>{const i=document.querySelector('#shortPwdInput');if(!i)return false;i.value=password;if(i._valueTracker)i._valueTracker.setValue('');['input','change'].forEach(t=>i.dispatchEvent(new Event(t,{bubbles:true})));return true;};
     const cleanup=()=>{clearInterval(timer);observer.disconnect();};
-    const finish=(status,error='')=>{state.status=status;state.error=error;cleanup();try{if(String(window.name||'').startsWith(${prefix}))window.name='';}catch(_){}};
+    const finish=(status,error='')=>{state.status=status;state.error=error;if(status==='done'){state.timeline.doneAt=now();}cleanup();try{if(String(window.name||'').startsWith(${prefix}))window.name='';}catch(_){}};
     const step=()=>{try{
       if(state.status==='done'||state.status==='failed')return;
       const input=document.querySelector('#shortPwdInput');
       if(!input){
         const entry=findEntry();
-        if(entry){entry.click();state.lastAction='click-entry';}
+        if(entry){entry.click();state.lastAction='click-entry';if(!state.timeline.clickEntryAt)state.timeline.clickEntryAt=now();}
         state.status='waiting_password';
         return;
       }
       const ok=fillPwd();
       if(!ok){state.status='waiting_password';return;}
       state.lastAction='password-set';
+      if(!state.timeline.passwordSetAt)state.timeline.passwordSetAt=now();
       const finalBtn=findFinal();
-      if(finalBtn){finalBtn.click();state.lastAction='click-final';finish('done');return;}
+      if(finalBtn){finalBtn.click();state.lastAction='click-final';if(!state.timeline.clickFinalAt)state.timeline.clickFinalAt=now();finish('done');return;}
       state.status='waiting_final';
     }catch(err){finish('failed',String(err));}};
     const timer=setInterval(step,50);
@@ -400,22 +419,66 @@ export async function getAutoPayStatus(profile: string): Promise<AutoPayStatus> 
       try{return JSON.parse(decodeURIComponent(raw.slice(PREFIX.length)));}catch(_){return null;}
     };
     const s=window[KEY];
-    if(s)return JSON.stringify({status:s.status||'idle',error:s.error||'',lastAction:s.lastAction||''});
+    if(s)return JSON.stringify({status:s.status||'idle',error:s.error||'',lastAction:s.lastAction||'',timeline:s.timeline||{}});
     const payload=parsePayload();
     if(payload && payload.password){
       ${buildAutoPayBootstrapJs('payload.password')}
-      return JSON.stringify({status:'running',error:'',lastAction:'bootstrapped'});
+      const boot=window[KEY];
+      if (boot && boot.timeline && !boot.timeline.bootstrappedAt) boot.timeline.bootstrappedAt = Date.now();
+      return JSON.stringify({status:'running',error:'',lastAction:'bootstrapped',timeline:(boot&&boot.timeline)||{}});
     }
     if(String(window.name||'').startsWith(PREFIX)){
-      return JSON.stringify({status:'failed',error:'invalid autopay payload',lastAction:'payload-parse-failed'});
+      return JSON.stringify({status:'failed',error:'invalid autopay payload',lastAction:'payload-parse-failed',timeline:{}});
     }
-    return JSON.stringify({status:'idle'});
+    return JSON.stringify({status:'idle',timeline:{}});
   })()`;
   const raw = await evalScript(profile, script);
   try {
     return JSON.parse(raw) as AutoPayStatus;
   } catch {
     return { status: 'unknown', error: raw };
+  }
+}
+
+/**
+ * 支付阶段诊断信息（超时/失败时使用）
+ */
+export async function getPaymentDebugInfo(profile: string): Promise<PaymentDebugInfo> {
+  const script = `(function(){
+    const KEY='__JDAUTO_AUTOPAY__';
+    const hit = Array.from(document.querySelectorAll('div,button'))
+      .filter(e => {
+        const txt = (e.textContent || '').replace(/\\s+/g, '');
+        const cls = String(e.className || '');
+        const rect = e.getBoundingClientRect();
+        return txt.includes('立即支付')
+          && cls.includes('base-button')
+          && e.offsetParent !== null
+          && rect.width > 90
+          && rect.height > 30;
+      });
+    const s = window[KEY];
+    return JSON.stringify({
+      href: String(location.href || ''),
+      title: String(document.title || ''),
+      hasPasswordInput: !!document.querySelector('#shortPwdInput'),
+      payButtonCandidates: hit.length,
+      autopayStatus: s && s.status ? String(s.status) : 'idle',
+      autopayLastAction: s && s.lastAction ? String(s.lastAction) : '',
+    });
+  })()`;
+  const raw = await evalScript(profile, script);
+  try {
+    return JSON.parse(raw) as PaymentDebugInfo;
+  } catch {
+    return {
+      href: '',
+      title: '',
+      hasPasswordInput: false,
+      payButtonCandidates: 0,
+      autopayStatus: 'unknown',
+      autopayLastAction: raw,
+    };
   }
 }
 

@@ -21,6 +21,7 @@ export class FlashSaleInstance {
   private accountName: string;
   private profile: string;
   private paymentPassword: string;
+  private submitSucceededAtMs: number | null = null;
 
   constructor(accountName: string, profile: string, sku: string, flashSaleTime: string, maxRetries: number, paymentPassword: string) {
     this.accountName = accountName;
@@ -112,6 +113,7 @@ export class FlashSaleInstance {
       logger.info(this.accountName, `提交订单: ${result}`);
 
       if (result.startsWith('ok:')) {
+        this.submitSucceededAtMs = Date.now();
         logger.success(this.accountName, '订单提交成功，进入支付阶段');
         this.setState(FlashSaleState.PAYMENT);
         return;
@@ -161,11 +163,14 @@ export class FlashSaleInstance {
     for (let i = 0; i < 100; i++) {
       const next = await opencli.getAutoPayStatus(this.profile);
       if (next.status === 'done') {
+        this.logPaymentSummary('done', next);
         this.setState(FlashSaleState.DONE);
         logger.success(this.accountName, '支付完成！');
         return;
       }
       if (next.status === 'failed') {
+        this.logPaymentSummary('failed', next);
+        await this.logPaymentDebugInfo('自动支付失败诊断');
         logger.error(this.accountName, `自动支付失败: ${next.error || next.lastAction || 'unknown'}`);
         this.setState(FlashSaleState.FAILED);
         return;
@@ -180,9 +185,13 @@ export class FlashSaleInstance {
           return;
         }
       }
-      await sleep(50);
+      if (i >= 2) {
+        await sleep(50);
+      }
     }
 
+    this.logPaymentSummary('timeout', { status: 'failed' });
+    await this.logPaymentDebugInfo('自动支付超时诊断');
     logger.error(this.accountName, '自动支付超时');
     this.setState(FlashSaleState.FAILED);
   }
@@ -238,6 +247,33 @@ export class FlashSaleInstance {
       await sleep(intervalMs);
     }
     return false;
+  }
+
+  private logPaymentSummary(outcome: string, status: Awaited<ReturnType<typeof opencli.getAutoPayStatus>>): void {
+    const timeline = status.timeline;
+    const segments: string[] = [];
+    if (this.submitSucceededAtMs) {
+      segments.push(`submit->${outcome}=${Date.now() - this.submitSucceededAtMs}ms`);
+    }
+    if (timeline?.initAt) {
+      const base = timeline.initAt;
+      if (timeline.bootstrappedAt) segments.push(`bootstrapped=+${timeline.bootstrappedAt - base}ms`);
+      if (timeline.clickEntryAt) segments.push(`click-entry=+${timeline.clickEntryAt - base}ms`);
+      if (timeline.passwordSetAt) segments.push(`password-set=+${timeline.passwordSetAt - base}ms`);
+      if (timeline.clickFinalAt) segments.push(`click-final=+${timeline.clickFinalAt - base}ms`);
+      if (timeline.doneAt) segments.push(`done=+${timeline.doneAt - base}ms`);
+    }
+    if (segments.length > 0) {
+      logger.info(this.accountName, `支付统计: ${segments.join(', ')}`);
+    }
+  }
+
+  private async logPaymentDebugInfo(prefix: string): Promise<void> {
+    const info = await opencli.getPaymentDebugInfo(this.profile);
+    logger.warn(
+      this.accountName,
+      `${prefix}: href=${info.href || '-'}, title=${info.title || '-'}, hasPasswordInput=${info.hasPasswordInput}, payButtonCandidates=${info.payButtonCandidates}, autopayStatus=${info.autopayStatus}, autopayLastAction=${info.autopayLastAction || '-'}`
+    );
   }
 }
 
