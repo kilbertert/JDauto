@@ -108,10 +108,6 @@ npm run desktop
   <img src="./docs/assets/MyVideo_2.gif" alt="JDauto 操作演示" width="720" />
 </p>
 
-<p align="center">
-  建议配合上面的界面示意图一起查看，能更快理解初始化、启动任务与日志观察流程
-</p>
-
 ## 常用命令
 
 ```bash
