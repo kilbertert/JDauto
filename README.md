@@ -102,12 +102,13 @@ npm run desktop
 
 上图展示了桌面端主要输入项、初始化按钮与任务控制按钮，适合作为首次使用时的快速参考。
 
-### 操作演示视频
+### 完整操作视频
 
-- 在线查看：[JDauto 整体操作演示视频](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/MyVideo_2.mp4)
-- 如果 GitHub 页面内无法直接预览，请点击链接后在新标签页中播放，或下载到本地查看
+- 在线查看：[`MyVideo_2.gif`](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/MyVideo_2.gif)
+- 建议配合上面的界面示意图一起查看，能更快理解初始化、启动任务与日志观察流程
 
-该视频适合在首次部署完成后快速浏览一遍，对照界面和日志理解完整操作流程。
+> GitHub README 对视频内嵌播放支持不稳定，直接放视频链接更兼容。  
+> 即使把 `.mp4` 提交到仓库里，通常也只是进入文件预览页或下载页，不一定能像图片那样稳定直接嵌在 README 中播放。
 
 ## 常用命令
 
