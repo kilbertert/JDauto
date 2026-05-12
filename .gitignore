@@ -483,3 +483,4 @@ vendor/chromium/chromium/win64-1628189/chrome-win/locales/zh-TW_NEUTER.pak
 vendor/chromium/chromium/win64-1628189/chrome-win/locales/zh-TW.pak
 vendor/node-runtime/node.exe
 node_modules/.package-lock.json
+node_modules/.package-lock.json
