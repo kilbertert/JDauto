@@ -102,6 +102,13 @@ npm run desktop
 
 上图展示了桌面端主要输入项、初始化按钮与任务控制按钮，适合作为首次使用时的快速参考。
 
+### 操作演示视频
+
+- 在线查看：[JDauto 整体操作演示视频](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/MyVideo_2.mp4)
+- 如果 GitHub 页面内无法直接预览，请点击链接后在新标签页中播放，或下载到本地查看
+
+该视频适合在首次部署完成后快速浏览一遍，对照界面和日志理解完整操作流程。
+
 ## 常用命令
 
 ```bash
