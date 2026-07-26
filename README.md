@@ -10,7 +10,7 @@ JDauto 是一个基于 `OpenCLI Browser Bridge` 的京东自动化工具，包�
 ## 功能特性
 
 - 多账号并行执行，按配置批量抢购
-- `PREPARE -> EXECUTE -> PAYMENT` 全链路状态机
+- `PREPARE -> EXECUTING -> PAYMENT` 全链路状态机
 - 预热到提交订单页，尽量把慢步骤前移
 - 自动注入支付流程，减少提交后的额外命令往返
 - 京东服务器时间偏移校正，提升卡点精度
@@ -44,7 +44,7 @@ PAYMENT
 SKU/CSV 输入
   -> 每个 OpenCLI profile 串行处理任务
   -> 打开京东商品页并捕获网络响应
-  -> 提取 pc_detailpage_wareBusiness
+  -> 提取 pc_detailpage_wareBusiness 并校验详情 SKU
   -> 原子写入 <SKU>.json，失败写入 errors.jsonl
 ```
 
@@ -58,7 +58,7 @@ SKU/CSV 输入
 
 ## 环境要求
 
-- Node.js `>= 21`
+- Node.js `>= 22.19`
 - Windows 环境优先
 - 已安装 `@jackwener/opencli`
 - 浏览器已安装并启用 OpenCLI Browser Bridge 扩展
@@ -175,7 +175,7 @@ npm run pack:win
 src/
   index.ts              自动下单 CLI 入口
   collect.ts            商品采集 CLI 入口
-  product-collector.ts  SKU 解析、响应提取、重试和落盘
+  product-collector.ts  SKU 解析、身份校验、重试和原子落盘
   scheduler.ts          PREPARE / EXECUTE 调度器
   instance.ts           单账号抢购执行器
   jd-clock.ts           京东服务器时间同步
@@ -183,10 +183,11 @@ src/
     opencli-wrap.ts     OpenCLI 命令封装
   desktop/
     main.ts             Electron 主进程
-    preload.ts          Electron 预加载
+    ipc-contract.cts    桌面端 IPC Interface
+    preload.cts         沙箱化 Electron 预加载 Adapter
 
 config/
-  accounts.json         本地账号配置
+  accounts.json         默认运行配置（不含支付密码）
   example-config.json   示例配置
 
 docs/
@@ -196,6 +197,7 @@ docs/
   setup-guide.md        环境与安装说明
 
 DESIGN.md               项目架构与设计决策
+CONTEXT.md              项目领域语言
 ```
 
 ## 桌面端与打包
@@ -228,6 +230,7 @@ npm run pack:win
 - [环境安装说明](docs/setup-guide.md)
 - [SKU 商品信息采集](docs/product-collector.md)
 - [项目架构设计](DESIGN.md)
+- [项目领域语言](CONTEXT.md)
 - [SKU 采集端到端验证](docs/e2e-validation-2026-07-26.md)
 
 ## 注意事项
@@ -236,4 +239,5 @@ npm run pack:win
 - 建议优先使用环境变量 `JDAUTO_PASSWORD`
 - 多账号并发时，不同账号的支付页跳转与渲染速度可能不同
 - 抢购完成后请手动复核订单状态与支付结果
+- 商品详情中的主 SKU 必须与输入 SKU 一致，否则该次采集会失败并重试
 - 浏览器采集会受到京东页面频控影响，实测不能据此承诺稳定日采 10,000

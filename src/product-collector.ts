@@ -32,7 +32,14 @@ export interface CollectOptions {
   resume: boolean;
   timeoutMs?: number;
   onProgress?: (progress: CollectProgress) => void;
+  captureProductPage?: ProductCaptureAdapter;
 }
+
+export type ProductCaptureAdapter = (
+  profile: string,
+  url: string,
+  timeoutMs?: number
+) => Promise<unknown>;
 
 export interface CollectProgress {
   completed: number;
@@ -162,7 +169,33 @@ function parseTimestamp(value: unknown): number {
   return 0;
 }
 
-export function extractProductDetails(capture: unknown): Record<string, unknown> {
+function productDetailsSku(details: Record<string, unknown>): string | null {
+  const page = details.pageConfigVO as Record<string, unknown> | undefined;
+  const head = details.skuHeadVO as Record<string, unknown> | undefined;
+  const ware = details.wareInfoReadMap as Record<string, unknown> | undefined;
+  const candidates = [
+    page?.skuid,
+    page?.skuId,
+    head?.skuId,
+    ware?.sku_id,
+    ware?.skuId,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) continue;
+    const sku = normalizeSku(value);
+    if (sku) return sku;
+  }
+  return null;
+}
+
+export function extractProductDetails(
+  capture: unknown,
+  expectedSku: string
+): Record<string, unknown> {
+  const normalizedExpectedSku = normalizeSku(expectedSku);
+  if (!normalizedExpectedSku) throw new Error(`非法目标 SKU: ${expectedSku}`);
+
   const entries = (capture as NetworkEnvelope | null)?.entries;
   if (!Array.isArray(entries)) throw new Error('网络捕获中没有 entries 数组');
 
@@ -173,6 +206,7 @@ export function extractProductDetails(capture: unknown): Record<string, unknown>
       && (entry.status === 200 || entry.status === undefined)
     )
     .sort((a, b) => parseTimestamp(b.timestamp) - parseTimestamp(a.timestamp));
+  const observedSkus = new Set<string>();
 
   for (const entry of candidates) {
     let body = entry.body;
@@ -184,7 +218,16 @@ export function extractProductDetails(capture: unknown): Record<string, unknown>
       }
     }
     const details = findDetails(body);
-    if (details) return details;
+    if (!details) continue;
+    const capturedSku = productDetailsSku(details);
+    if (capturedSku === normalizedExpectedSku) return details;
+    if (capturedSku) observedSkus.add(capturedSku);
+  }
+
+  if (observedSkus.size > 0) {
+    throw new Error(
+      `未捕获到目标 SKU ${normalizedExpectedSku} 的有效商品响应；捕获到其他 SKU: ${[...observedSkus].join(', ')}`
+    );
   }
   throw new Error(`未捕获到 ${PRODUCT_API_MARKER} 的有效商品响应`);
 }
@@ -214,6 +257,19 @@ export function buildProductRecord(
   };
 }
 
+export function isProductRecordForSku(value: unknown, expectedSku: string): value is ProductRecord {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const normalizedExpectedSku = normalizeSku(expectedSku);
+  if (!normalizedExpectedSku) return false;
+
+  const record = value as Partial<ProductRecord>;
+  if (record.商品ID !== normalizedExpectedSku) return false;
+  if (!record.详情数据 || typeof record.详情数据 !== 'object' || Array.isArray(record.详情数据)) {
+    return false;
+  }
+  return productDetailsSku(record.详情数据) === normalizedExpectedSku;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -226,8 +282,8 @@ async function writeJsonAtomic(filePath: string, value: unknown): Promise<void> 
 
 async function isCompleted(filePath: string, sku: string): Promise<boolean> {
   try {
-    const parsed = JSON.parse(await fs.readFile(filePath, 'utf8')) as Partial<ProductRecord>;
-    return parsed.商品ID === sku && Boolean(parsed.详情数据);
+    const parsed: unknown = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    return isProductRecordForSku(parsed, sku);
   } catch {
     return false;
   }
@@ -244,6 +300,7 @@ export async function collectProducts(
   const queue = [...skus];
   let errorWrite = Promise.resolve();
   const errorPath = path.join(options.outputDir, 'errors.jsonl');
+  const captureProductPage = options.captureProductPage ?? openAndCaptureNetwork;
 
   const report = (sku: string, profile: string): void => {
     options.onProgress?.({ ...summary, sku, profile });
@@ -264,12 +321,12 @@ export async function collectProducts(
       let lastError: unknown;
       for (let attempt = 0; attempt <= options.retries; attempt++) {
         try {
-          const capture = await openAndCaptureNetwork(
+          const capture = await captureProductPage(
             profile,
             `https://item.jd.com/${sku}.html`,
             options.timeoutMs
           );
-          const details = extractProductDetails(capture);
+          const details = extractProductDetails(capture, sku);
           await writeJsonAtomic(outputPath, buildProductRecord(sku, details));
           summary.completed++;
           lastError = undefined;

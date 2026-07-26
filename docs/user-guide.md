@@ -2,7 +2,7 @@
 
 ## 环境要求
 
-- Node.js >= 21
+- Node.js >= 22.19
 - 已安装 `@jackwener/opencli` 并验证 `opencli doctor` 通过
 - 已安装 RTK（可选，降低 token 消耗）
 - 至少 1 个（建议多个）独立浏览器 Profile（每个对应一个京东账号，Edge/Chrome 均可）
@@ -93,6 +93,9 @@ node scripts/sync-opencli-accounts.mjs --prefix 账号 --start-index 1
   ]
 }
 ```
+
+程序会在启动时验证 Runtime Config，包括必填账号字段、重复 OpenCLI Profile、CDP
+端口范围、SKU、抢购时间和重试次数。验证失败会指出具体字段，不会带着不完整配置继续运行。
 
 ---
 

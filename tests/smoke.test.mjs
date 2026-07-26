@@ -17,10 +17,9 @@ assert(canTransition(FlashSaleState.IDLE, FlashSaleState.PREPARE));
 assert(!canTransition(FlashSaleState.DONE, FlashSaleState.PREPARE));
 console.log('state-machine: OK');
 
-// 测试 config 类型
-import type { ChromeAccount, FlashSaleTask } from '../dist/config.js';
-const account: ChromeAccount = { name: '测试账号', profile: 'TestProfile' };
-const task: FlashSaleTask = { sku: '123', flashSaleTime: '2026-05-07T20:00:00' };
+// 测试基础配置对象
+const account = { name: '测试账号', profile: 'TestProfile' };
+const task = { sku: '123', flashSaleTime: '2026-05-07T20:00:00' };
 assert(account.profile === 'TestProfile');
 assert(task.sku === '123');
 console.log('config types: OK');

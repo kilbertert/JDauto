@@ -9,7 +9,7 @@
     "jdcollect": "./dist/collect.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/clean-dist.mjs && tsc",
     "prepare:node-runtime": "node scripts/prepare-bundled-node.mjs",
     "prepare:chromium": "node scripts/prepare-bundled-chromium.mjs",
     "start": "node dist/index.js",
@@ -18,12 +18,12 @@
     "pack:win": "powershell -NoProfile -Command \"$root='dist-electron'; New-Item -ItemType Directory -Force -Path $root | Out-Null; $out=Join-Path $root (Get-Date -Format 'yyyyMMdd-HHmmss'); npm run prepare:node-runtime; npm run prepare:chromium; npm run build; npx electron-builder --win nsis --config.directories.output=$out\"",
     "pack:win:fresh": "npm run pack:win",
     "dev": "tsc --watch",
-    "test": "node --test tests/*.test.ts",
+    "test": "npm run build && node --test tests/*.test.mjs",
     "sync:profiles": "node scripts/sync-opencli-accounts.mjs",
     "cleanup:opencli-profiles": "node scripts/cleanup-opencli-profiles.mjs"
   },
   "engines": {
-    "node": ">=21"
+    "node": ">=22.19"
   },
   "dependencies": {
     "@jackwener/opencli": "1.7.14"
@@ -123,5 +123,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
+  },
+  "allowScripts": {
+    "@jackwener/opencli@1.7.14": true,
+    "electron@31.7.7": true
   }
 }
