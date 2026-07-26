@@ -16,8 +16,6 @@ import { FlashSaleInstance } from './instance.js';
 import { syncJdClock } from './jd-clock.js';
 import { logger } from './utils/logger.js';
 import * as opencli from './commands/opencli-wrap.js';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import type { ChromeAccount, FlashSaleTask } from './config.js';
 
 interface CliArgs {
@@ -79,14 +77,7 @@ async function main(): Promise<void> {
   const prepareAheadMs = (args.prepareAhead ?? 45) * 1000;
 
   // 加载配置（优先用命令行 --sku/--time，否则用配置文件）
-  let config: { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };
-  if (args.config) {
-    const configPath = path.resolve(args.config);
-    const raw = fs.readFileSync(configPath, 'utf-8');
-    config = JSON.parse(raw) as { accounts: ChromeAccount[]; tasks: FlashSaleTask[] };
-  } else {
-    config = loadConfig();
-  }
+  let config: { accounts: ChromeAccount[]; tasks: FlashSaleTask[] } = loadConfig(args.config);
 
   // 如果用 --sku/--time 命令行参数覆盖 tasks
   if (args.sku && args.time) {

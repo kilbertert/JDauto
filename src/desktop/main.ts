@@ -3,33 +3,16 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '../config.js';
+import { loadConfig, saveConfig } from '../config.js';
 import type { JDAutoConfig, ChromeAccount } from '../config.js';
 import { resolveBrowserExecutablePath } from '../browser-path.js';
-
-interface StartRequestBody {
-  sku?: string;
-  time?: string;
-  password?: string;
-  maxRetries?: number;
-  prepareAhead?: number;
-  accounts?: number;
-  manual?: boolean;
-}
-
-interface RunState {
-  running: boolean;
-  pid?: number;
-  startedAt?: string;
-  endedAt?: string;
-  exitCode?: number;
-  command?: string;
-  logs: string[];
-}
-
-interface InitProfilesPayload {
-  count?: number;
-}
+import {
+  DESKTOP_IPC_CHANNELS,
+  type DesktopState,
+  type InitProfilesPayload,
+  type RunState,
+  type StartRequestBody,
+} from './ipc-contract.cjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -498,15 +481,11 @@ function loadConfigFile(): { cfg: JDAutoConfig; configPath: string } {
   if (!configPath) {
     throw new Error('未找到 accounts.json');
   }
-  const raw = fs.readFileSync(configPath, 'utf8');
-  const cfg = JSON.parse(raw) as JDAutoConfig;
-  if (!Array.isArray(cfg.accounts)) cfg.accounts = [];
-  if (!Array.isArray(cfg.tasks)) cfg.tasks = [];
-  return { cfg, configPath };
+  return { cfg: loadConfig(configPath), configPath };
 }
 
 function saveConfigFile(configPath: string, cfg: JDAutoConfig): void {
-  fs.writeFileSync(configPath, `${JSON.stringify(cfg, null, 2)}\n`, 'utf8');
+  saveConfig(configPath, cfg);
 }
 
 function launchProfileWindow(browserPath: string, userDataDir: string, profileDir: string, cdpPort: number, extensionDir: string): void {
@@ -832,7 +811,7 @@ function getConfigPreview(): { accountCount: number; accountNames: string[] } {
   }
 }
 
-function getState(): RunState & { configPreview: { accountCount: number; accountNames: string[] } } {
+function getState(): DesktopState {
   return {
     ...state,
     configPreview: getConfigPreview(),
@@ -845,9 +824,10 @@ function createWindow(): void {
     height: 760,
     title: 'JDauto 桌面控制台',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      sandbox: false,
+      preload: path.join(__dirname, 'preload.cjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
     },
   });
 
@@ -906,7 +886,7 @@ function createWindow(): void {
     </div>
 
     <script>
-      const { ipcRenderer } = require('electron');
+      const api = window.jdauto;
       const runningEl = document.getElementById('running');
       const logsEl = document.getElementById('logs');
       const timingEl = document.getElementById('timing');
@@ -948,7 +928,7 @@ function createWindow(): void {
 
       async function refresh() {
         try {
-          const data = await ipcRenderer.invoke('jdauto:get-state');
+          const data = await api.getState();
           renderState(data);
         } catch (err) {
           logsEl.textContent += '\\n[UI] ' + String(err);
@@ -966,7 +946,7 @@ function createWindow(): void {
           manual: document.getElementById('manual').checked
         };
         try {
-          await ipcRenderer.invoke('jdauto:start', body);
+          await api.start(body);
           await refresh();
         } catch (err) {
           alert(String(err));
@@ -975,7 +955,7 @@ function createWindow(): void {
 
       stopBtn.addEventListener('click', async () => {
         try {
-          await ipcRenderer.invoke('jdauto:stop');
+          await api.stop();
           await refresh();
         } catch (err) {
           alert(String(err));
@@ -986,7 +966,7 @@ function createWindow(): void {
         syncBtn.disabled = true;
         syncBtn.textContent = '同步中...';
         try {
-          await ipcRenderer.invoke('jdauto:sync-profiles');
+          await api.syncProfiles();
           await refresh();
           alert('Profile 同步完成');
         } catch (err) {
@@ -1001,7 +981,7 @@ function createWindow(): void {
         cleanBtn.disabled = true;
         cleanBtn.textContent = '清理中...';
         try {
-          await ipcRenderer.invoke('jdauto:cleanup-opencli-profiles');
+          await api.cleanupProfiles();
           await refresh();
           alert('OpenCLI 历史 profile 清理完成');
         } catch (err) {
@@ -1017,7 +997,7 @@ function createWindow(): void {
         initBtn.disabled = true;
         initBtn.textContent = '初始化中...';
         try {
-          await ipcRenderer.invoke('jdauto:init-profiles', { count });
+          await api.initProfiles({ count });
           await refresh();
           alert('Profile 初始化完成，请在新开的浏览器窗口中登录账号并确认插件连接');
         } catch (err) {
@@ -1041,16 +1021,16 @@ function createWindow(): void {
   });
 }
 
-ipcMain.handle('jdauto:get-state', () => getState());
-ipcMain.handle('jdauto:start', async (_event, payload: StartRequestBody) => {
+ipcMain.handle(DESKTOP_IPC_CHANNELS.getState, () => getState());
+ipcMain.handle(DESKTOP_IPC_CHANNELS.start, async (_event, payload: StartRequestBody) => {
   await startJob(payload);
   return getState();
 });
-ipcMain.handle('jdauto:stop', () => {
+ipcMain.handle(DESKTOP_IPC_CHANNELS.stop, () => {
   stopJob();
   return getState();
 });
-ipcMain.handle('jdauto:sync-profiles', async () => {
+ipcMain.handle(DESKTOP_IPC_CHANNELS.syncProfiles, async () => {
   await syncProfiles();
   // 普通同步也做一次轻量清理，移除明显污染项
   const loaded = loadConfigFile();
@@ -1068,11 +1048,11 @@ ipcMain.handle('jdauto:sync-profiles', async () => {
   }
   return getState();
 });
-ipcMain.handle('jdauto:cleanup-opencli-profiles', async () => {
+ipcMain.handle(DESKTOP_IPC_CHANNELS.cleanupProfiles, async () => {
   await cleanupOpencliProfiles();
   return getState();
 });
-ipcMain.handle('jdauto:init-profiles', async (_event, payload: InitProfilesPayload) => {
+ipcMain.handle(DESKTOP_IPC_CHANNELS.initProfiles, async (_event, payload: InitProfilesPayload) => {
   await initProfiles(payload ?? {});
   return getState();
 });
