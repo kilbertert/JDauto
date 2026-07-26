@@ -1,6 +1,8 @@
 # JDauto
 
-JDauto 是一个基于 `OpenCLI Browser Bridge` 的京东自动抢购工具，支持多账号并行、预热到提交页、卡点提交订单、自动支付，以及桌面端日志查看与 Windows 打包。
+JDauto 是一个基于 `OpenCLI Browser Bridge` 的京东自动化工具，包含自动下单助手和 SKU
+商品信息采集器。项目支持多账号下单、预热到提交页、卡点提交订单、自动支付、批量 SKU
+采集，以及桌面端日志查看与 Windows 打包。
 
 > 本项目仅供学习、交流与自动化技术研究使用，不用于任何商业用途或违规用途。
 > 请在遵守平台规则、法律法规和账号安全要求的前提下使用，并自行承担使用风险。
@@ -13,6 +15,8 @@ JDauto 是一个基于 `OpenCLI Browser Bridge` 的京东自动抢购工具，�
 - 自动注入支付流程，减少提交后的额外命令往返
 - 京东服务器时间偏移校正，提升卡点精度
 - 桌面端控制台，支持启动、停止和查看实时日志
+- 根据 SKU 采集京东商品聚合详情 JSON
+- 支持文本、JSON、CSV 输入、断点续跑和失败记录
 - 支持打包为 Windows EXE
 
 ## 工作原理
@@ -32,6 +36,16 @@ PAYMENT
   -> 点击“立即支付”
   -> 注入支付密码
   -> 点击最终确认按钮
+```
+
+商品信息采集使用独立入口：
+
+```text
+SKU/CSV 输入
+  -> 每个 OpenCLI profile 串行处理任务
+  -> 打开京东商品页并捕获网络响应
+  -> 提取 pc_detailpage_wareBusiness
+  -> 原子写入 <SKU>.json，失败写入 errors.jsonl
 ```
 
 ## 性能表现
@@ -96,6 +110,16 @@ npm run desktop
 
 桌面窗口可直接填写 SKU、抢购时间、支付密码、账号数等参数，并查看实时日志。
 
+### 6. 采集 SKU 商品信息
+
+```powershell
+npm run collect -- --input .\skus.csv --output .\data\products --accounts 1
+```
+
+CSV 会读取 `id` 列，存在 `platform` 列时只采集值为 `jd` 的行。输出结构参见
+[`id采集商品信息.json`](id采集商品信息.json)，完整参数和限制参见
+[`docs/product-collector.md`](docs/product-collector.md)。
+
 ### 桌面端操作示意
 
 ![JDauto 桌面端注释说明图](https://github-ranlei.oss-cn-shenzhen.aliyuncs.com/JDAuto/20260512_232233_%E5%9F%BA%E4%BA%8E%E5%8F%82%E8%80%83%E5%9B%BE%E7%89%87%E4%B8%AD%E7%9A%84_JDauto.png)
@@ -114,6 +138,7 @@ npm run desktop
 npm run build
 npm run test
 npm run desktop
+npm run collect -- --input .\skus.txt
 npm run sync:profiles
 npm run cleanup:opencli-profiles
 npm run pack:win
@@ -148,7 +173,9 @@ npm run pack:win
 
 ```text
 src/
-  index.ts              CLI 入口
+  index.ts              自动下单 CLI 入口
+  collect.ts            商品采集 CLI 入口
+  product-collector.ts  SKU 解析、响应提取、重试和落盘
   scheduler.ts          PREPARE / EXECUTE 调度器
   instance.ts           单账号抢购执行器
   jd-clock.ts           京东服务器时间同步
@@ -163,8 +190,12 @@ config/
   example-config.json   示例配置
 
 docs/
+  product-collector.md  商品信息采集说明
+  e2e-validation-2026-07-26.md  端到端验证报告
   user-guide.md         用户使用说明
   setup-guide.md        环境与安装说明
+
+DESIGN.md               项目架构与设计决策
 ```
 
 ## 桌面端与打包
@@ -195,6 +226,9 @@ npm run pack:win
 - [用户指南](docs/user-guide.md)
 - [项目文档 README](docs/README.md)
 - [环境安装说明](docs/setup-guide.md)
+- [SKU 商品信息采集](docs/product-collector.md)
+- [项目架构设计](DESIGN.md)
+- [SKU 采集端到端验证](docs/e2e-validation-2026-07-26.md)
 
 ## 注意事项
 
@@ -202,3 +236,4 @@ npm run pack:win
 - 建议优先使用环境变量 `JDAUTO_PASSWORD`
 - 多账号并发时，不同账号的支付页跳转与渲染速度可能不同
 - 抢购完成后请手动复核订单状态与支付结果
+- 浏览器采集会受到京东页面频控影响，实测不能据此承诺稳定日采 10,000

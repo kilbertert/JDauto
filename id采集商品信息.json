@@ -1,0 +1,1532 @@
+{
+  "商品ID": "10023749565113",
+  "商品名称": "京东(JD.COM)-正品低价、品质保障、配送及时、轻松购物！",
+  "商品平台": "京东",
+  "商品链接": "https://item.jd.com/10023749565113.html",
+  "采集时间": "2026/7/26 13:21:28",
+  "详情数据": {
+    "userInfo": {},
+    "productAttributeVO": {
+      "attributes": [
+        {
+          "jumpUrl": "//list.jd.com/list.html?cat=6994,36230,36257&ev=exbrand_8630",
+          "labelName": "品牌",
+          "labelValue": "皇家（ROYAL CANIN）"
+        },
+        {
+          "labelName": "商品编号",
+          "labelValue": "10023749565113"
+        },
+        {
+          "jumpUrl": "//mall.jd.com/index-650686.html?from=pc",
+          "labelName": "店铺",
+          "labelValue": "皇家宠物食品官方旗舰店"
+        },
+        {
+          "labelName": "适用体型",
+          "labelValue": "中型犬"
+        },
+        {
+          "labelName": "功效",
+          "labelValue": "强化免疫"
+        },
+        {
+          "labelName": "包装形式",
+          "labelValue": "袋装"
+        }
+      ],
+      "coreAttributes": [
+        {
+          "labelName": "保质期",
+          "labelValue": "24个月"
+        },
+        {
+          "labelName": "口味",
+          "labelValue": "混合口味"
+        },
+        {
+          "labelName": "适用阶段",
+          "labelValue": "幼犬"
+        },
+        {
+          "labelName": "国产/进口",
+          "labelValue": "国产"
+        },
+        {
+          "labelName": "类型",
+          "labelValue": "其他"
+        },
+        {
+          "labelName": "适用品种",
+          "labelValue": "通用"
+        }
+      ]
+    },
+    "commentNoticeVO": {
+      "commentShow": true,
+      "noticeShow": true
+    },
+    "promiseFxgInfo": {},
+    "beltBanner": "//img30.360buyimg.com/jdg/jfs/t1/263547/24/18280/20997/67a96901F1bef1e77/fcce6b07199642ff.png",
+    "bestPromotion": {
+      "canGetCoupon": [],
+      "purchasePrice": "90.29"
+    },
+    "csfhText": "厂商发货",
+    "installServiceVO": {
+      "title": "送装服务"
+    },
+    "isInstallNow": false,
+    "preferenceVO": {
+      "againSharedLabel": [
+        {
+          "labelName": "最高返9京豆",
+          "type": "9"
+        }
+      ],
+      "preferencePopUp": {
+        "againSharedPreference": [
+          {
+            "againSort": 0,
+            "bigPromotion": false,
+            "crossStoreFullCut": false,
+            "formal": false,
+            "link": "//plus.jd.com/right/index#item-exclusive",
+            "logPromoId": "424087700990",
+            "originType": "2",
+            "preferenceId": "424087700990",
+            "preferenceType": "2",
+            "proSortNum": 20,
+            "promoId": 424087700990,
+            "promoTags": [
+              1128
+            ],
+            "tag": 40,
+            "text": "PLUS专享立减",
+            "typeNumber": "",
+            "value": "可与PLUS价、满减、券等优惠叠加使用"
+          },
+          {
+            "againSort": 0,
+            "bigPromotion": false,
+            "buriedPoint": {
+              "beanNum": 9,
+              "sceneType": "1"
+            },
+            "crossStoreFullCut": false,
+            "formal": false,
+            "originType": "9",
+            "preferenceType": "9",
+            "shortText": "最高返9京豆",
+            "text": "返京豆",
+            "value": "京东购物返京豆，订单完成后最高可返9京豆。特殊渠道订单不参与购物返豆，以订单实际返豆为准"
+          }
+        ],
+        "expression": {
+          "basePrice": "90.3",
+          "couponAmount": "0",
+          "discountAmount": "0.01",
+          "discountDesc": "购买立减",
+          "govAmount": "",
+          "promotionAmount": "0",
+          "redAmount": "0.01",
+          "subtrahends": [
+            {
+              "preferenceAmount": "0",
+              "preferenceDesc": "红包抵¥0.01",
+              "preferenceType": "5",
+              "topDesc": "红包"
+            }
+          ]
+        },
+        "sharedPreference": []
+      },
+      "sharedLabel": []
+    },
+    "price": {
+      "ab": true,
+      "finalPrice": {
+        "price": "90.29",
+        "priceContent": "到手价",
+        "up": "1"
+      },
+      "hagglePromotion": false,
+      "id": "10023749565113",
+      "m": "210.00",
+      "op": "210.00",
+      "p": "90.30"
+    },
+    "ipCityCode": "2802",
+    "pageConfigVO": {
+      "easyBuyUrl": "//easybuy.jd.com/skuDetail/newSubmitEasybuyOrder.action",
+      "surprisePopUpType": "",
+      "commentUgcDisjunctor": true,
+      "commonButtonSwitch": true,
+      "homeMatchTeacherSwitch": false,
+      "specialAttrs": [
+        "thwa-2",
+        "product_features-deliveryTimeType:1;fhsx:1;fylx:3;introductionUseFlag:0;is7ToReturn:3;isPayFirst:1;isSopJdDy:0;isUDSAttr:1;maxBuyTimes:100;mobileDescUseFlag:0;mobileZhuangBaId:14117578229;nameBrandType:brandtitlecn_name;nameWithoutBrand:狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕;nationallySetWare:3;popsfkc:0;salemodel:POP_MODEL;scsj:1577345704829;wlzyc:31|26|29|28|30|11;yxxp:2;zhuangBaId:14117578229;zyyfmb:1",
+        "sfkc-0",
+        "vender_bizid-,popsop,",
+        "fhsx",
+        "nationallySetWare-3",
+        "is7ToReturn-1",
+        "fxg-0"
+      ],
+      "growing": false,
+      "showShopNode": false,
+      "catName": [
+        "宠物生活",
+        "狗食品",
+        "狗湿粮/主食罐",
+        "狗主食湿粮包"
+      ],
+      "showAnswers": true,
+      "isLOC3": false,
+      "pType": 2,
+      "addressKsSwitch": true,
+      "shopId": "650686",
+      "isClosePCShow": false,
+      "isBpin": false,
+      "brand": "8630",
+      "isQualityLifeShow": true,
+      "isSelfBook": false,
+      "floatLayerSwitch": true,
+      "popUpRefreshType": "",
+      "skuMarkJson": {
+        "isSopWareService": false,
+        "isSds": false,
+        "isTimeMark": false,
+        "isxg": false,
+        "NosendWMS": false,
+        "presale": false,
+        "isSopUseSelfStock": false,
+        "isSopJSOLTag": false,
+        "isPOPDistribution": false,
+        "isJDexpress": false,
+        "pg": false,
+        "isGlobalPurchase": false,
+        "unused": false,
+        "isrecyclebag": false,
+        "isyy": false,
+        "isOripack": false,
+        "ispt": false
+      },
+      "cms_app_id": "665730",
+      "toInstall": false,
+      "forceAdUpdate": "8291",
+      "colorSizeBrushless": 0,
+      "magnifierSwitch": true,
+      "recBtnSwitch": true,
+      "enPlanOptSwitch": true,
+      "isZx": false,
+      "isOver": false,
+      "isPop": true,
+      "isSelfMvd": false,
+      "isYuShou": false,
+      "memberShopFlag": false,
+      "isSelf": false,
+      "isTuanGou": false,
+      "hideSearchShopBtn": true,
+      "bybtShieldSwitch": true,
+      "venderId": 655156,
+      "recommendForYouSwitch": true,
+      "noSaleReasonSwitch": true,
+      "isYuYue": false,
+      "shopSwitch": true,
+      "isCallRecommendFlag": false,
+      "shangjiazizhi": false,
+      "noSale": false,
+      "cat": [
+        6994,
+        36230,
+        36257
+      ],
+      "fcs": false,
+      "jumpChannel": "2",
+      "footerType": "gb_common",
+      "extraService": false,
+      "lazyLoadSwitch": true,
+      "stockSkuNum": 100,
+      "src": "jfs/t1/485983/14/4955/120843/6a61bdb4Fe3c08687/00833203203116ef.jpg",
+      "productLabels": {
+        "category_id": "36257"
+      },
+      "showComment": true,
+      "tradeInSwitch": false,
+      "isFeeType": false,
+      "umcPopUpNum": "3",
+      "hideAllRecs": false,
+      "isEBook": false,
+      "showPk": false,
+      "ctCloth": false,
+      "isPNew": true,
+      "skuid": 10023749565113,
+      "bundleSale": false
+    },
+    "isSfkd": false,
+    "beltBannerInfo": {
+      "bannerLeftIcon": "http://img30.360buyimg.com/jdg/jfs/t1/465100/21/9374/2916/6a412148F56c3c851/07fe0cf0363c3a18.png",
+      "bannerLogoOfficialDiscount": "http://img30.360buyimg.com/jdg/jfs/t1/465545/35/7856/5379/6a412133Fde4f31c4/07fe1ab0368f6029.png",
+      "bannerRightText": "又好又便宜",
+      "bannerRightTextColor": "",
+      "bannerRightTextOfficialDiscount": "又好又便宜",
+      "beltBannerUrl": "//img30.360buyimg.com/jdg/jfs/t1/464547/40/10656/1210/6a412154F177a5d49/07fe6f60b4d131db.png",
+      "countDown": 0,
+      "labels": "10007142",
+      "leftArrowIcon": "",
+      "leftIconLink": "",
+      "middleIcon": "",
+      "promoId": "3372980",
+      "subsidyType": "",
+      "subsidyUserStatus": "",
+      "type": "8",
+      "yuYueNum": 0
+    },
+    "ext": {
+      "commonRecommend": true,
+      "sf_opt": true,
+      "bjdSdk": false,
+      "jinCaiInterfaceSwitch": true,
+      "imageSearchBtn": true,
+      "mini_trade": true,
+      "auctionSwitch": true,
+      "isNotFsAndCustom": false,
+      "noRefreshSwitch": true,
+      "xundanGuide": true,
+      "govAb": true,
+      "guideAppSwitch": true,
+      "spmSwitchForBottomBtn": true,
+      "continuousShopNewSwitch": true,
+      "jxLicenceDegrade": true,
+      "qualityLifeSwitch": false,
+      "multiAddCart": true,
+      "carAddedServiceSwitch": true,
+      "paramUpDegrade": true,
+      "continue_shop": true,
+      "jcStrongSwitch": false,
+      "bjkPrice": true,
+      "couponApiSwitch": true,
+      "govActivityPopUpSwitch": true,
+      "myAppointSwitch": true,
+      "spuInfoDegrade": true,
+      "appleLimit": true,
+      "autoManagerSwitch": true,
+      "entMemberAcqSwitch": true,
+      "half_day_arrive": true,
+      "govUnGetPopUpSwitch": true,
+      "seoTitleSwitch": true,
+      "entExc": true,
+      "defaultUmc": true,
+      "taxOn": true,
+      "hxSubsidy": true
+    },
+    "isServiceJdkd": false,
+    "contentTabSwitchVO": {
+      "tabSwitchList": [
+        {
+          "code": "DJP",
+          "name": "大家评"
+        },
+        {
+          "code": "DP",
+          "name": "店铺"
+        },
+        {
+          "code": "SPXQ",
+          "name": "商品详情"
+        },
+        {
+          "code": "SHBZ",
+          "name": "售后保障"
+        },
+        {
+          "code": "TJ",
+          "name": "推荐"
+        }
+      ]
+    },
+    "qualityLifeVO": {
+      "isQualityLife": true,
+      "qualificationParameterVO": {
+        "catId1": "6994",
+        "catId2": "36230",
+        "catId3": "36257",
+        "pid": "14117578229",
+        "skuId": "10023749565113",
+        "venderId": "655156"
+      },
+      "qualityLifeImg": "jfs/t2077/314/2192172483/11044/f861504a/56ca6792N64e5eafc.png",
+      "qualityLifeList": [
+        {
+          "dataType": "1",
+          "name": "质量承诺",
+          "type": "J-ql-iframe ql-ico-1"
+        },
+        {
+          "dataType": "5",
+          "name": "耐久性标签",
+          "type": "ql-ico-5"
+        },
+        {
+          "dataType": "3",
+          "name": "吊牌",
+          "type": "ql-ico-3"
+        },
+        {
+          "dataType": "4",
+          "name": "质检报告",
+          "type": "ql-ico-4"
+        },
+        {
+          "dataType": "2",
+          "name": "CCC证书",
+          "type": "ql-ico-2"
+        },
+        {
+          "dataType": "v1",
+          "name": "实时温控",
+          "type": "fresh-ico-1"
+        },
+        {
+          "dataType": "v2",
+          "name": "检验报告",
+          "type": "fresh-ico-2"
+        }
+      ]
+    },
+    "warrantyInfo": {
+      "serviceItems": []
+    },
+    "itemShopInfo": {
+      "followCount": 1376066,
+      "hideDisplay": false,
+      "hotCates": [
+        {
+          "categoryType": 3,
+          "cid": 0,
+          "cname": "幼猫粮",
+          "commendSkuId": 10086907198781,
+          "imgPath": "https://img11.360buyimg.com/cms/jfs/t1/151286/37/36374/87481/6735d5baF269cf727/28824afa50327440.jpg"
+        },
+        {
+          "categoryType": 1,
+          "cid": 12953612,
+          "cname": "top爆款",
+          "commendSkuId": 11535074579,
+          "imgPath": "https://img11.360buyimg.com/cms/jfs/t1/218215/11/48811/96692/673db998F7bbe8029/1e37caa90eed25f5.jpg"
+        },
+        {
+          "categoryType": 1,
+          "cid": 1008784925,
+          "cname": "11岁+老年猫粮",
+          "commendSkuId": 10088015145605,
+          "imgPath": "https://img11.360buyimg.com/cms/jfs/t1/430743/30/6778/105855/69fbee66Fd6fd5408/0083320320ed1f98.jpg"
+        },
+        {
+          "categoryType": 1,
+          "cid": 73210266,
+          "cname": "1-4月龄奶糕粮",
+          "commendSkuId": 11565018382,
+          "imgPath": "https://img11.360buyimg.com/cms/jfs/t1/436139/32/19963/146316/6a0fb991F21e0f613/0083320320dc7b23.png"
+        }
+      ],
+      "isYearFiveStarTab": true,
+      "shopExtMap": {
+        "venderBusinessIdentity": ",popsop,",
+        "venderAttr": ",ECD001,HYS001,"
+      },
+      "shopGrade": {
+        "afterSaleGrade": "高",
+        "afterSaleGradeLevel": "3",
+        "afterSaleScore": "9.5",
+        "customServiceGrade": "高",
+        "customServiceGradeLevel": "3",
+        "customServiceScore": "10.0",
+        "evaluateGrade": "高",
+        "evaluateGradeLevel": "3",
+        "evaluateScore": "9.5",
+        "logisticsGrade": "高",
+        "logisticsGradeLevel": "3",
+        "logisticsScore": "9.9",
+        "scoreRankRateGrade": "5.0"
+      },
+      "shopId": 650686,
+      "shopLongLogo": "https://img30.360buyimg.com/popshop/jfs/t4306/147/1182267198/34295/8f21a212/58be7c1fN7ee97a77.jpg",
+      "shopName": "皇家宠物食品官方旗舰店",
+      "shopSquareLogo": "https://img30.360buyimg.com/popshop/jfs/t23584/128/1510641109/30150/91b4a2dd/5b626b96Na871d7a3.jpg",
+      "shopTabList": [
+        {
+          "tabClassType": 1,
+          "tabCode": "tab_var_702_dp",
+          "tabData": "9年老店",
+          "tabDisplayType": 2,
+          "tabImg": "http://m.360buyimg.com/cc/jfs/t1/157957/4/30960/453/63365fc4E1344bd4d/975c6f95c22fed20.png",
+          "tabKey": "N_OLD_SHOP"
+        }
+      ],
+      "shopUrl": "//mall.jd.com/index-650686.html?from=pc",
+      "venderType": "0"
+    },
+    "bottomBtnVO": {
+      "bottomBtnItems": [
+        {
+          "buttonEvent": {
+            "id": 1,
+            "link": "",
+            "miniTrade": false,
+            "qrcodeText": "",
+            "source": "common"
+          },
+          "buttonStyle": {
+            "containerFormat": {
+              "backgroundColor": ""
+            },
+            "state": 1,
+            "subBottomLeftTextFormat": {},
+            "subBottomRightTextFormat": {},
+            "subBottomTextFormat": {},
+            "subLeftTextFormat": {},
+            "subRightTextFormat": {},
+            "textFormat": {
+              "text": "加入购物车"
+            },
+            "type": 1
+          },
+          "buttonType": 1,
+          "scene": "100",
+          "tracking": {}
+        },
+        {
+          "buttonEvent": {
+            "id": 2,
+            "link": "",
+            "miniTrade": true,
+            "qrcodeText": "",
+            "source": "common"
+          },
+          "buttonStyle": {
+            "containerFormat": {
+              "backgroundColor": ""
+            },
+            "state": 1,
+            "subBottomLeftTextFormat": {},
+            "subBottomRightTextFormat": {},
+            "subBottomTextFormat": {},
+            "subLeftTextFormat": {},
+            "subRightTextFormat": {},
+            "textFormat": {
+              "text": "立即购买"
+            },
+            "type": 1
+          },
+          "buttonType": 2,
+          "scene": "100",
+          "tracking": {}
+        },
+        {
+          "buttonEvent": {
+            "id": 18,
+            "link": "",
+            "miniTrade": false,
+            "qrcodeText": ""
+          },
+          "buttonStyle": {
+            "containerFormat": {
+              "backgroundColor": ""
+            },
+            "state": 2,
+            "subBottomLeftTextFormat": {},
+            "subBottomRightTextFormat": {},
+            "subBottomTextFormat": {},
+            "subLeftTextFormat": {},
+            "subRightTextFormat": {},
+            "textFormat": {
+              "text": "白条支付"
+            },
+            "type": 1
+          },
+          "buttonType": 4,
+          "scene": "37",
+          "tracking": {}
+        }
+      ]
+    },
+    "isSamMember": false,
+    "skuHeadVO": {
+      "seoTitle": "皇家狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕 【【中型犬湿粮MEPW】】140gX7【行情 报价 价格 评测】-京东",
+      "skuIconImageList": [],
+      "skuTitle": "皇家狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕 【【中型犬湿粮MEPW】】140gX7"
+    },
+    "carButlerVO": {
+      "suingCarButlerNodes": false
+    },
+    "brandVipInfo": {
+      "vip": false
+    },
+    "whiteBarInfo": {
+      "creditStatus": 1,
+      "isAva": true,
+      "isBtUser": false,
+      "isDiscountAll": false,
+      "isFull": false,
+      "isItemAva": true,
+      "isLogin": true,
+      "isShopAva": true,
+      "isSkuAva": true,
+      "key": "5F493AE4577656F7A40BE815489CA2A3",
+      "marketingText": "",
+      "noAvaInfo": "",
+      "planInfos": [
+        {
+          "curTotal": 90.29,
+          "fee": 0,
+          "feeText": "0服务费",
+          "firstPay": 90.29,
+          "firstRepayDate": "2026-08-26",
+          "isDiscount": false,
+          "isMaxDiscount": false,
+          "laterPay": 90.29,
+          "mainTitle": "不分期",
+          "plan": 1,
+          "planFee": 0,
+          "rate": 0,
+          "secondTitle": "无服务费",
+          "text": "起",
+          "total": 90.29
+        },
+        {
+          "curTotal": 30.56,
+          "fee": 1.35,
+          "feeText": "含服务费",
+          "firstPay": 30.55,
+          "firstRepayDate": "2026-08-26",
+          "isDiscount": false,
+          "isMaxDiscount": false,
+          "laterPay": 30.56,
+          "mainTitle": "￥30.56 x 3期",
+          "plan": 3,
+          "planFee": 0.45,
+          "rate": 0.5,
+          "secondTitle": "含服务费：费率0.50%，￥0.45&times;3期",
+          "text": "起",
+          "total": 91.64
+        },
+        {
+          "curTotal": 15.54,
+          "fee": 2.7,
+          "feeText": "含服务费",
+          "firstPay": 15.5,
+          "firstRepayDate": "2026-08-26",
+          "isDiscount": false,
+          "isMaxDiscount": false,
+          "laterPay": 15.54,
+          "mainTitle": "￥15.54 x 6期",
+          "plan": 6,
+          "planFee": 0.45,
+          "rate": 0.5,
+          "secondTitle": "含服务费：费率0.50%，￥0.45&times;6期",
+          "text": "起",
+          "total": 92.99
+        },
+        {
+          "curTotal": 8.02,
+          "fee": 5.4,
+          "feeText": "含服务费",
+          "firstPay": 7.97,
+          "firstRepayDate": "2026-08-26",
+          "isDiscount": false,
+          "isMaxDiscount": false,
+          "laterPay": 8.02,
+          "mainTitle": "￥8.02 x 12期",
+          "plan": 12,
+          "planFee": 0.45,
+          "rate": 0.5,
+          "secondTitle": "含服务费：费率0.50%，￥0.45&times;12期",
+          "text": "起",
+          "total": 95.69
+        },
+        {
+          "curTotal": 4.26,
+          "fee": 10.8,
+          "feeText": "含服务费",
+          "firstPay": 4.21,
+          "firstRepayDate": "2026-08-26",
+          "isDiscount": false,
+          "isMaxDiscount": false,
+          "laterPay": 4.26,
+          "mainTitle": "￥4.26 x 24期",
+          "plan": 24,
+          "planFee": 0.45,
+          "rate": 0.5,
+          "secondTitle": "含服务费：费率0.50%，￥0.45&times;24期",
+          "text": "起",
+          "total": 101.09
+        }
+      ],
+      "planRate": 0.5,
+      "propMarketText": "",
+      "url": "//bt.jd.com/v3/activity/open?rid=1785043290631",
+      "ver": "1"
+    },
+    "optionServiceVO": {
+      "serviceItems": []
+    },
+    "isFsAndCustom": false,
+    "urlRedirectVO": {
+      "key": "pc_detail",
+      "redirectParamFlag": true,
+      "url": "//item.jd.com/10023749565113.html"
+    },
+    "colorSizeVO": {
+      "canAddCartMap": {
+        "64622627588": 0,
+        "10023749565113": 0,
+        "67059490644": 0
+      },
+      "colorSizeList": [
+        {
+          "buttons": [
+            {
+              "fullImageUrl": "jfs/t1/485983/14/4955/120843/6a61bdb4Fe3c08687/00833203203116ef.jpg",
+              "imageType": 0,
+              "no": "2",
+              "skuId": "10023749565113",
+              "skuList": [
+                "10023749565113"
+              ],
+              "stock": "1",
+              "text": "【【中型犬湿粮MEPW】】140gX7"
+            }
+          ],
+          "supportCustom": false,
+          "title": "口味"
+        }
+      ],
+      "limitInfo": {
+        "64622627588": {
+          "limitMax": 200,
+          "limitMin": 1
+        },
+        "10023749565113": {
+          "limitMax": 200,
+          "limitMin": 1
+        },
+        "67059490644": {
+          "limitMax": 200,
+          "limitMin": 1
+        }
+      },
+      "spiderMap": {
+        "64622627588": "I1PfYGHRCvCE6oUp-Yy8L2DhJc-jRC0a4P5Dt1UQ1bE_GsjyYCS9sUqHnJWccCfN.rQ4a.tlbT",
+        "10023749565113": "I1PfYGHRCvCE6oUp-Yy8L0uoL9Ep5Yo1XKDWVoVmV25qlAzCQiXdSAIX-gWnKaQt.rQ4a.tlbT",
+        "67059490644": "I1PfYGHRCvCE6oUp-Yy8L84A4EosGjwnnpuZnJyXmJ3L9Rup20NZi9xOB9sFEedE.rQ4a.tlbT"
+      },
+      "stockInfo": {
+        "64622627588": {
+          "dc": "-1",
+          "stockState": "33"
+        },
+        "10023749565113": {
+          "dc": "-1",
+          "stockState": "33"
+        },
+        "67059490644": {
+          "dc": "-1",
+          "stockState": "33"
+        }
+      }
+    },
+    "isLogin": true,
+    "commonLimitInfo": {
+      "limitMinNum": "1",
+      "limitText": "",
+      "mergeMaxBuyNum": "100",
+      "resultExtMap": {
+        "noSaleFlag": "0",
+        "limitNum": "0",
+        "strategyFlag": "1",
+        "mergeMaxBuyNumInfo": "{\"mergeMaxBuyNum\":100,\"strategyId\":-2,\"type\":2}",
+        "limitUserFlag": "1",
+        "limitTotal": "100",
+        "limitDay": "1",
+        "limitPeopleFlag": "1",
+        "limitBuyStrategyList": "[{\"limitTimeUnit\":\"1\",\"limitTotal\":\"100\",\"mergeMaxBuyNum\":\"100\",\"strategyId\":\"-2\",\"limitDay\":\"1\",\"limitType\":\"0\"}]",
+        "canBuy": "1",
+        "limitText": "",
+        "isPlusLimit": "0",
+        "mergeMaxBuyNum": "100",
+        "limitAreaFlag": "1",
+        "everyoneSurplusNum": "100"
+      }
+    },
+    "optionServiceNewVO": {
+      "serviceGroup": []
+    },
+    "govSupportInfo": {
+      "ab": true,
+      "beltBanner": "//img30.360buyimg.com/jdg/jfs/t1/263547/24/18280/20997/67a96901F1bef1e77/fcce6b07199642ff.png",
+      "cloudPay": false,
+      "govSubsidy": false,
+      "govSupport": false,
+      "rightText": "",
+      "subsidyScene": "0",
+      "subsidyType": "",
+      "subsidyUserStatus": "",
+      "yellowBar": false
+    },
+    "wareInfoReadMap": {
+      "fare": "3687009",
+      "thwa": "2",
+      "cn_brand": "皇家（ROYAL CANIN）",
+      "vender_name": "广州指向网络科技有限公司",
+      "timeliness_id": "28775409",
+      "unLimit_cid": "36263",
+      "shop_id": "650686",
+      "buyer_post": "",
+      "size": "",
+      "sale_attributes": "[{\"dim\":1,\"saleName\":\"口味\",\"saleValue\":\"【【中型犬湿粮MEPW】】140gX7\",\"sequenceNo\":2}]",
+      "img_dfs_url": "jfs/t1/485983/14/4955/120843/6a61bdb4Fe3c08687/00833203203116ef.jpg",
+      "category_id": "36257",
+      "nationallySetWareJdcom": "3",
+      "template_ids": "[601466846,601558838,601560516,601560164]",
+      "shop_name": "皇家宠物食品官方旗舰店",
+      "wlzyc": "31|26|29|28|30|11",
+      "isDscDept": "1",
+      "spec_sequence": "0",
+      "companyType": "0",
+      "length": "400",
+      "nationallySetWare": "3",
+      "warranty": "",
+      "model": "",
+      "color_sequence": "2",
+      "on_shelves_time": "1781172416000",
+      "vender_bizid": ",popsop,",
+      "features2": "bcdsjsp:1;jingxixc:0;shortTitle:皇家中型犬湿粮140gX7;xxhf:1",
+      "maxCartCat": "999",
+      "isXfpDept": "1",
+      "fxg": "0",
+      "isSopJdDy": "0",
+      "is7ToReturn": "1",
+      "product_id": "14117578229",
+      "height": "300",
+      "zero_buyer_post": "1727",
+      "product_features": "deliveryTimeType:1;fhsx:1;fylx:3;introductionUseFlag:0;is7ToReturn:3;isPayFirst:1;isSopJdDy:0;isUDSAttr:1;maxBuyTimes:100;mobileDescUseFlag:0;mobileZhuangBaId:14117578229;nameBrandType:brandtitlecn_name;nameWithoutBrand:狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕;nationallySetWare:3;popsfkc:0;salemodel:POP_MODEL;scsj:1577345704829;wlzyc:31|26|29|28|30|11;yxxp:2;zhuangBaId:14117578229;zyyfmb:1",
+      "upc_code": "6949047586983",
+      "jc_saler": "",
+      "day_limited_sales": "100",
+      "item_num": "",
+      "fhsx": "1",
+      "vender_attribute": ",ECD001,HYS001,",
+      "features": "consumptionVAT:0,inputVAT:9,outputVAT:9",
+      "pay_first": "1",
+      "weight": "0.100",
+      "brand_id": "8630",
+      "size_sequence": "0",
+      "color": "【【中型犬湿粮MEPW】】140gX7",
+      "shelf_life": "0",
+      "vender_id": "655156",
+      "category_id4": "36263",
+      "isQdh": "0",
+      "category_id1": "6994",
+      "category_id2": "36230",
+      "sfkc": "0",
+      "delivery": "deliveryPlace:0;",
+      "sku_status": "1",
+      "spec_name": "",
+      "main_sku_id": "64622627588",
+      "yn": "1",
+      "sku_name": "皇家狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕 【【中型犬湿粮MEPW】】140gX7",
+      "supply_unit": "",
+      "col_type": "0",
+      "realSpuId": "14117578229",
+      "vender_col_type": "0",
+      "width": "200",
+      "isJDFCat": "0",
+      "spec": "",
+      "product_name": "皇家狗粮 犬幼犬粮 零食罐头 全价主食湿粮软包罐头中型通用 幼犬奶糕",
+      "xxhf": "1",
+      "platform": "1",
+      "sku_mark": "0",
+      "flbusimodel": "2",
+      "item_id": "-1"
+    },
+    "serviceTagsVO": {
+      "basicNewIcons": [
+        {
+          "code": "pop_wdbp",
+          "helpLink": "https://pro.m.jd.com/mall/active/4N5mQMJBm8mM2RaTMArg4uHPLQLJ/index.html",
+          "iconServiceType": 3,
+          "text": "晚到赔",
+          "tip": "您在京东平台购买的商品享受晚到赔保障，若送达超承诺时效，最高赔您30元。"
+        },
+        {
+          "code": "p59",
+          "helpLink": "https://help.jd.com/user/issue/962-4181.html",
+          "text": "30天价保险",
+          "tip": "在下单后30天内，商品出现降价可享受价保险服务，部分特殊场景不支持价保，可点击“＞”了解详细规则"
+        },
+        {
+          "code": "p96",
+          "text": "免费上门退换",
+          "tip": "售后时效内申请退换货，选择上门取件优先安排京东物流服务，无需支付退换货运费；选择自寄，售后完成后补首重运费。"
+        },
+        {
+          "code": "p1",
+          "text": "闪电退款",
+          "tip": "京东优质用户提交售后申请退货时，满足相关条件快速退款的服务"
+        },
+        {
+          "code": "p8",
+          "helpLink": "//help.jd.com/user/issue/list-114-470.html",
+          "text": "极速审核",
+          "tip": "京东优质用户提交售后申请退货时，满足相关条件最快0秒审核通过的服务"
+        },
+        {
+          "code": "p93",
+          "helpLink": "https://bao.tjjt360.com/insurance/serviceDetail/labelConfigDetail?skuId=10023749565113&labelCode=p93",
+          "text": "破损包退换",
+          "tip": "商品出库后30天内发生正向运输破损，未收到货或意外损坏问题，保险公司按照保险责任的合作约定提供退货退款、换新/损失补偿。"
+        },
+        {
+          "code": "deliveryAndAfterSales",
+          "text": "店铺发货&售后服务",
+          "tip": "店铺发货&售后服务"
+        },
+        {
+          "text": "支持7天无理由退货（一次性包装破损不支持）"
+        }
+      ]
+    },
+    "isCsfh": false,
+    "warePriceGatherVO": {
+      "ext": {},
+      "priceItemList": [
+        {
+          "hitLine": false,
+          "price": "90.29",
+          "priceLabelList": [
+            {
+              "labelShowType": "tag",
+              "labelTxt": "到手价",
+              "labelType": "finalPrice"
+            }
+          ],
+          "priceType": "finalPrice",
+          "priceUp": "1"
+        },
+        {
+          "hitLine": true,
+          "price": "90.3",
+          "priceLabelList": [],
+          "priceStyle": {
+            "color": "#888b94",
+            "fontSize": "14px"
+          },
+          "priceType": "jdPrice"
+        }
+      ],
+      "priceScene": {
+        "priceScene": "common"
+      }
+    },
+    "stepperVO": {
+      "disabled": false,
+      "hide": false,
+      "limitMinNum": "1",
+      "mergeMaxBuyNum": "100"
+    },
+    "abData": {
+      "multi_price": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzgxNjQ4fGJlc3Q|tsabtest",
+        "business": "multi_price",
+        "keyParamMap": {
+          "hit": 1
+        },
+        "label": "best",
+        "success": true
+      },
+      "new_people": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk5ODE2fHhpbnJlbg|tsabtest",
+        "keyParamMap": {
+          "new_user": 1
+        },
+        "label": "xinren",
+        "success": true,
+        "type": "16"
+      },
+      "loss_recall": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzIyMDMyOXxU|tsabtest",
+        "keyParamMap": {},
+        "label": "T",
+        "success": true
+      },
+      "item_pk": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzcyNjUyfGJhc2U|tsabtest",
+        "business": "item_pk",
+        "keyParamMap": {},
+        "label": "base",
+        "success": true
+      },
+      "main_image": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzgzNTg3fHByZTI|tsabtest",
+        "business": "main_image",
+        "keyParamMap": {
+          "first_show": 2
+        },
+        "label": "pre2",
+        "success": true
+      },
+      "ent_plus_user_acquisition": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzEyMjY3N3xU|tsabtest",
+        "keyParamMap": {},
+        "label": "T",
+        "success": true,
+        "type": "30"
+      },
+      "abTags": [
+        "tsabtest|base64|UGNUZXN0TmV3XzEyMjY3N3xU|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk4Mzg3fHNoaXlhbnp1X2JhbmdkYW4|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwMTA1M3xzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk4OTk3fHNoaXlhbnp1|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzIwOTk2OHxS|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzE1NTY0N3xU|tsabtest",
+        "tsabtest|base64|UGNBQlRlc3RfNzg3NTh8cHJl|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk5ODk1fGJhc2U|tsabtest",
+        "tsabtest|base64|UENUZXN0XzgyOTkzfGJlc3Q|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwMjYwMHxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk1ODAxfHNoaXlhbnp1X3Br|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzc5MDE3fGJlc3Q|tsabtest",
+        "tsabtest|base64|UENUZXN0XzcxNzM4fGJhc2U|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzE0OTg0MnxS|tsabtest",
+        "tsabtest|base64|UENUZXN0XzgxNjQ4fGJlc3Q|tsabtest",
+        "tsabtest|base64|UENUZXN0XzcyNjUyfGJhc2U|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzI3Njc2NHxS|tsabtest",
+        "tsabtest|base64|UENUZXN0XzExNzU0N3xiYXNl|tsabtest",
+        "tsabtest|base64|UENUZXN0XzExODE0NHxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0XzcxMzY2fGJhc2U|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwODU0OHxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0XzgzNTg3fHByZTI|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwOTc4MXxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwMjY2MXxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzEyMjgxNnxS|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk2NTg0fGJhc2U|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzEyMTgwOXxU|tsabtest",
+        "tsabtest|base64|U01CQUJUZXN0Xzg0MTY1fHByZQ|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwNTYzOXxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UENUZXN0XzEwMjY1NHxzaGl5YW56dQ|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzIyMDMyOXxU|tsabtest",
+        "tsabtest|base64|UENUZXN0XzExNjU0MXxiYXNl|tsabtest",
+        "tsabtest|base64|UGNUZXN0TmV3XzE2MDA1M3xuZXc|tsabtest",
+        "tsabtest|base64|UENUZXN0Xzk5ODE2fHhpbnJlbg|tsabtest"
+      ],
+      "jd_fashion": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwMjYwMHxzaGl5YW56dQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "19"
+      },
+      "promotion_optimize": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzc5MDE3fGJlc3Q|tsabtest",
+        "business": "promotion_optimize",
+        "keyParamMap": {
+          "hit": 1
+        },
+        "label": "best",
+        "success": true
+      },
+      "brand_cart_animation": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzExNjU0MXxiYXNl|tsabtest",
+        "keyParamMap": {},
+        "label": "base",
+        "success": true,
+        "type": "25"
+      },
+      "xundan_guide": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk4OTk3fHNoaXlhbnp1|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "15"
+      },
+      "core_param": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzEyMTgwOXxU|tsabtest",
+        "keyParamMap": {},
+        "label": "T",
+        "success": true,
+        "type": "34"
+      },
+      "preference_split_pile": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwNTYzOXxzaGl5YW56dQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "22"
+      },
+      "enPlus_price": {
+        "abBuriedTag": "tsabtest|base64|UGNBQlRlc3RfNzg3NTh8cHJl|tsabtest",
+        "business": "enPlus_price",
+        "keyParamMap": {},
+        "label": "pre",
+        "success": true
+      },
+      "mini_recommend_pid": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzE0OTg0MnxS|tsabtest",
+        "business": "mini_recommend_pid",
+        "keyParamMap": {},
+        "label": "R",
+        "success": true
+      },
+      "mini_shop": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwOTc4MXxzaGl5YW56dQ|tsabtest",
+        "business": "mini_shop",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true
+      },
+      "enterprise_plus_guide": {
+        "abBuriedTag": "tsabtest|base64|U01CQUJUZXN0Xzg0MTY1fHByZQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "pre",
+        "success": true,
+        "type": "14"
+      },
+      "continue_shop": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzE2MDA1M3xuZXc|tsabtest",
+        "keyParamMap": {},
+        "label": "new",
+        "success": true,
+        "type": "31"
+      },
+      "jd_plugin": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzExNzU0N3xiYXNl|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 0
+        },
+        "label": "base",
+        "success": true,
+        "type": "26"
+      },
+      "bottom_recommend": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwMTA1M3xzaGl5YW56dQ|tsabtest",
+        "business": "bottom_recommend",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true
+      },
+      "pc_rank": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk4Mzg3fHNoaXlhbnp1X2JhbmdkYW4|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu_bangdan",
+        "success": true,
+        "type": "13"
+      },
+      "spu_info": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzExODE0NHxzaGl5YW56dQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "27"
+      },
+      "no_refresh": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzE1NTY0N3xU|tsabtest",
+        "business": "no_refresh",
+        "keyParamMap": {},
+        "label": "T",
+        "success": true
+      },
+      "image_roll": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk5ODk1fGJhc2U|tsabtest",
+        "business": "image_roll",
+        "keyParamMap": {
+          "duizhaozu": 0
+        },
+        "label": "base",
+        "success": true
+      },
+      "img_search": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwODU0OHxzaGl5YW56dQ|tsabtest",
+        "business": "img_search",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true
+      },
+      "image_adjust": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk2NTg0fGJhc2U|tsabtest",
+        "business": "image_adjust",
+        "keyParamMap": {},
+        "label": "base",
+        "success": true
+      },
+      "ai_checklist_entrance": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzEyMjgxNnxS|tsabtest",
+        "business": "ai_checklist_entrance",
+        "keyParamMap": {},
+        "label": "R",
+        "success": true
+      },
+      "customize_xuandan": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzIwOTk2OHxS|tsabtest",
+        "keyParamMap": {},
+        "label": "R",
+        "success": true,
+        "type": "38"
+      },
+      "ware_recommendation": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwMjY1NHxzaGl5YW56dQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "18"
+      },
+      "search_public_component": {
+        "abBuriedTag": "tsabtest|base64|UGNUZXN0TmV3XzI3Njc2NHxS|tsabtest",
+        "business": "search_public_component",
+        "keyParamMap": {},
+        "label": "R",
+        "success": true
+      },
+      "item_gov_price": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzcxMzY2fGJhc2U|tsabtest",
+        "business": "item_gov_price",
+        "keyParamMap": {},
+        "label": "base",
+        "success": true
+      },
+      "jing_dou": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzgyOTkzfGJlc3Q|tsabtest",
+        "keyParamMap": {},
+        "label": "best",
+        "success": true,
+        "type": "8"
+      },
+      "main_imager_attr": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzEwMjY2MXxzaGl5YW56dQ|tsabtest",
+        "keyParamMap": {
+          "duizhaozu": 1
+        },
+        "label": "shiyanzu",
+        "success": true,
+        "type": "20"
+      },
+      "shiyanzu_pk": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0Xzk1ODAxfHNoaXlhbnp1X3Br|tsabtest",
+        "business": "shiyanzu_pk",
+        "keyParamMap": {
+          "pklevelup_test": 1
+        },
+        "label": "shiyanzu_pk",
+        "success": true
+      },
+      "item_gb_fastTest": {
+        "abBuriedTag": "tsabtest|base64|UENUZXN0XzcxNzM4fGJhc2U|tsabtest",
+        "business": "item_gb_fastTest",
+        "keyParamMap": {},
+        "label": "base",
+        "success": true
+      }
+    },
+    "installServiceNewVO": {
+      "title": "送装服务"
+    },
+    "stockVO": {
+      "freeShippinVO": {
+        "content": "包邮",
+        "deliveryDescLink": "//help.jd.com/user/issue/109-4012.html",
+        "originalText": "请以提交订单时为准",
+        "title": "了解配送费收取标准"
+      },
+      "logisticsLogoList": [],
+      "noGoods": false,
+      "promiseIconList": [
+        {
+          "code": "Pop_nextday",
+          "helpLink": "https://help.jd.com/user/issue/92-154.html",
+          "iconServiceType": 1,
+          "text": "明日达",
+          "tip": "指定时间前下单，次日送达"
+        }
+      ],
+      "promiseInfoText": "最快8小时内发货，明天送达"
+    },
+    "wareInfo": {
+      "extend": {},
+      "wareInfoMap": {
+        "sku_status": "1"
+      }
+    },
+    "addCartVO": {
+      "canAddCart": true
+    },
+    "govTextSwitch": true,
+    "mainImageVO": {
+      "carouselArea": [
+        {
+          "imageUrl": "jfs/t1/485983/14/4955/120843/6a61bdb4Fe3c08687/00833203203116ef.jpg",
+          "siteType": "1"
+        },
+        {
+          "imageUrl": "jfs/t1/480966/4/11652/97437/6a61c2beF62495a97/00833203207943d1.jpg",
+          "siteType": "1"
+        },
+        {
+          "imageUrl": "jfs/t1/179776/7/52649/90726/6756aabdF2054e0ad/0e51f36ada6ce5fe.jpg",
+          "siteType": "1"
+        },
+        {
+          "imageUrl": "jfs/t1/247599/30/28871/166856/6756aa9aFce63b6ad/c46fd1f3744104a1.jpg",
+          "siteType": "1"
+        },
+        {
+          "imageUrl": "jfs/t1/240009/34/26644/207940/6756aaa1F4c3a7c6d/eeb094949700d8b9.jpg",
+          "siteType": "1"
+        },
+        {
+          "imageUrl": "jfs/t1/248220/11/29023/139610/6756aab7Ff1060f54/a48224071d876109.jpg",
+          "siteType": "1"
+        },
+        {
+          "siteType": "3"
+        }
+      ],
+      "mainImageArea": {
+        "imageUrl": "jfs/t1/485983/14/4955/120843/6a61bdb4Fe3c08687/00833203203116ef.jpg"
+      }
+    },
+    "stockInfo": {
+      "deliveryInfo": {
+        "state": "SUPPORT",
+        "support": true
+      },
+      "isPlus": false,
+      "code": 1,
+      "promiseInfoText": "最快8小时内发货，明天送达",
+      "realStockState": "33",
+      "promiseResult": "最快8小时内发货，明天送达",
+      "serviceInfo": "由<a href='http://royalcanin.jd.com' target='_blank' clstag='shangpin|keycount|product|bbtn' class='hl_red'>皇家宠物食品官方旗舰店</a>发货, 并提供售后服务. ",
+      "stockDesc": "<strong>有货</strong>，仅剩1件",
+      "dcashDesc": "包邮（请以提交订单时为准） <a title=\"了解配送费收取标准\" href=//help.jd.com/user/issue/109-4012.html target=\"_blank\"><i class=\"sprite-question\"></i></a>",
+      "fxgCode": "0",
+      "is7ToReturn": "支持7天无理由退货（一次性包装破损不支持）",
+      "stockState": 33,
+      "stockInfo": {
+        "ae": 0,
+        "ag": "-1",
+        "ah": -1,
+        "at": "-1",
+        "availableNum": 1,
+        "businessType": 0,
+        "ca": -1,
+        "da": "-1",
+        "date": "",
+        "dc": "-1",
+        "dcId": -1,
+        "dcIdDely": -1,
+        "ef": 0,
+        "eh": -1,
+        "ej": "-1",
+        "ek": -1,
+        "freshEdi": 0,
+        "popPatType": -1,
+        "preStore": -1,
+        "railModel": 0,
+        "reservationType": "OTHER",
+        "rid": 0,
+        "sidDely": -1,
+        "siteId4Dada": -1,
+        "stDely": -1,
+        "stockM": 0,
+        "stockState": "AVAILABLE",
+        "stockV": 0,
+        "storeId": -1,
+        "storeId4Dada": -1,
+        "storeState4Dada": -1,
+        "storeType": -1,
+        "useStockNum": 99
+      },
+      "supportHKMOShip": true,
+      "serverIcon": {
+        "basicNewIcons": [
+          {
+            "code": "pop_wdbp",
+            "helpLink": "https://pro.m.jd.com/mall/active/4N5mQMJBm8mM2RaTMArg4uHPLQLJ/index.html",
+            "iconServiceType": 3,
+            "text": "晚到赔",
+            "tip": "您在京东平台购买的商品享受晚到赔保障，若送达超承诺时效，最高赔您30元。"
+          },
+          {
+            "code": "p59",
+            "helpLink": "https://help.jd.com/user/issue/962-4181.html",
+            "text": "30天价保险",
+            "tip": "在下单后30天内，商品出现降价可享受价保险服务，部分特殊场景不支持价保，可点击“＞”了解详细规则"
+          },
+          {
+            "code": "p96",
+            "text": "免费上门退换",
+            "tip": "售后时效内申请退换货，选择上门取件优先安排京东物流服务，无需支付退换货运费；选择自寄，售后完成后补首重运费。"
+          },
+          {
+            "code": "p1",
+            "text": "闪电退款",
+            "tip": "京东优质用户提交售后申请退货时，满足相关条件快速退款的服务"
+          },
+          {
+            "code": "p8",
+            "helpLink": "//help.jd.com/user/issue/list-114-470.html",
+            "text": "极速审核",
+            "tip": "京东优质用户提交售后申请退货时，满足相关条件最快0秒审核通过的服务"
+          },
+          {
+            "code": "p93",
+            "helpLink": "https://bao.tjjt360.com/insurance/serviceDetail/labelConfigDetail?skuId=10023749565113&labelCode=p93",
+            "text": "破损包退换",
+            "tip": "商品出库后30天内发生正向运输破损，未收到货或意外损坏问题，保险公司按照保险责任的合作约定提供退货退款、换新/损失补偿。"
+          },
+          {
+            "code": "deliveryAndAfterSales",
+            "text": "店铺发货&售后服务",
+            "tip": "店铺发货&售后服务"
+          },
+          {
+            "text": "支持7天无理由退货（一次性包装破损不支持）"
+          }
+        ],
+        "wlfwIcons": [
+          {
+            "code": "Pop_nextday",
+            "helpLink": "https://help.jd.com/user/issue/92-154.html",
+            "iconServiceType": 1,
+            "text": "明日达",
+            "tip": "指定时间前下单，次日送达"
+          }
+        ],
+        "basicIcons": [
+          {
+            "code": "pop_wdbp",
+            "helpLink": "https://pro.m.jd.com/mall/active/4N5mQMJBm8mM2RaTMArg4uHPLQLJ/index.html",
+            "iconServiceType": 3,
+            "text": "晚到赔",
+            "tip": "您在京东平台购买的商品享受晚到赔保障，若送达超承诺时效，最高赔您30元。"
+          },
+          {
+            "code": "p59",
+            "helpLink": "https://help.jd.com/user/issue/962-4181.html",
+            "text": "30天价保险",
+            "tip": "在下单后30天内，商品出现降价可享受价保险服务，部分特殊场景不支持价保，可点击“＞”了解详细规则"
+          },
+          {
+            "code": "p96",
+            "text": "免费上门退换",
+            "tip": "售后时效内申请退换货，选择上门取件优先安排京东物流服务，无需支付退换货运费；选择自寄，售后完成后补首重运费。"
+          },
+          {
+            "code": "p1",
+            "text": "闪电退款",
+            "tip": "京东优质用户提交售后申请退货时，满足相关条件快速退款的服务"
+          },
+          {
+            "code": "p8",
+            "helpLink": "//help.jd.com/user/issue/list-114-470.html",
+            "text": "极速审核",
+            "tip": "京东优质用户提交售后申请退货时，满足相关条件最快0秒审核通过的服务"
+          },
+          {
+            "code": "p93",
+            "helpLink": "https://bao.tjjt360.com/insurance/serviceDetail/labelConfigDetail?skuId=10023749565113&labelCode=p93",
+            "text": "破损包退换",
+            "tip": "商品出库后30天内发生正向运输破损，未收到货或意外损坏问题，保险公司按照保险责任的合作约定提供退货退款、换新/损失补偿。"
+          }
+        ]
+      },
+      "dcashDescDegrade": false,
+      "support": [],
+      "dcashDescNew": "包邮<a title=\"了解配送费收取标准\" href=\"//help.jd.com/user/issue/109-4012.html\" target=\"_blank\"><i class=\"sprite-question\"></i><span>请以提交订单时为准</span></a>",
+      "isStock": true
+    },
+    "commonConfig": {
+      "bjdSdk": "//storage.360buyimg.com/bjd-utils-sdk/bjdcommon/sdk/1.0.15/index.js",
+      "auctionJS": "//storage.360buyimg.com/h5source/auctionDetailPc/prod/20260714113549/main.b7a6f14a.js",
+      "mini_trade": "//storage.360buyimg.com/retail-mall/pc_settlement_lite/pro/0.0.2/createSettlementLite.js",
+      "aiCheckList": "//ai-list.jd.com/home",
+      "commentJs": "//storage.360buyimg.com/reputation/PCList/prod/0.1.6/index.66c8b5c9.js",
+      "bPkJs": "//storage.360buyimg.com/bjd-utils-sdk/bjdcommon/aishoparound/1.0.0.js",
+      "auctionCss": "//storage.360buyimg.com/h5source/auctionDetailPc/prod/20260714113549/main.283e4601.css"
+    },
+    "isPlusMember": "5",
+    "isJdkd": false,
+    "crumbInfoVO": {
+      "crumbs": [
+        {
+          "text": "宠物生活",
+          "url": "https://list.jd.com/list.html?cat=6994"
+        },
+        {
+          "text": "狗食品",
+          "url": "https://list.jd.com/list.html?cat=6994,36230"
+        },
+        {
+          "text": "狗湿粮/主食罐",
+          "url": "https://list.jd.com/list.html?cat=6994,36230,36257"
+        },
+        {
+          "text": "狗主食湿粮包",
+          "url": "https://list.jd.com/list.html?cat=6994,36230,36257,36263"
+        },
+        {
+          "text": "皇家（ROYAL CANIN）",
+          "url": "https://list.jd.com/list.html?cat=6994,36230,36257,36263&ev=exbrand_8630"
+        }
+      ]
+    },
+    "isJdwl": false,
+    "promotion": {
+      "canReturnHaggleInfo": false,
+      "isBargain": false,
+      "isTwoLine": false,
+      "limitBuyInfo": {
+        "limitNum": "0",
+        "noSaleFlag": "0",
+        "resultExt": {
+          "noSaleFlag": "0",
+          "limitNum": "0",
+          "strategyFlag": "1",
+          "mergeMaxBuyNumInfo": "{\"mergeMaxBuyNum\":100,\"strategyId\":-2,\"type\":2}",
+          "limitUserFlag": "1",
+          "limitTotal": "100",
+          "limitDay": "1",
+          "limitPeopleFlag": "1",
+          "limitBuyStrategyList": "[{\"limitTimeUnit\":\"1\",\"limitTotal\":\"100\",\"mergeMaxBuyNum\":\"100\",\"strategyId\":\"-2\",\"limitDay\":\"1\",\"limitType\":\"0\"}]",
+          "canBuy": "1",
+          "limitText": "",
+          "isPlusLimit": "0",
+          "mergeMaxBuyNum": "100",
+          "limitAreaFlag": "1",
+          "everyoneSurplusNum": "100"
+        }
+      },
+      "prompt": ""
+    },
+    "tracerId": "10104698200-142701-1785043290503"
+  }
+}

@@ -176,6 +176,8 @@ opencli profile list              # 查看已连接 profile
 
 ## 命令行参数
 
+### 自动下单
+
 | 参数 | 说明 |
 |------|------|
 | `--sku` | 商品 SKU |
@@ -185,6 +187,25 @@ opencli profile list              # 查看已连接 profile
 | `--max-retries` | 提交订单失败重试次数（默认 3） |
 | `--prepare-ahead` | 提前多少秒开始 PREPARE（默认 45） |
 | `--accounts` | 本次启用账号数量（从配置文件前 N 个账号中选取） |
+
+### SKU 商品信息采集
+
+```powershell
+npm run collect -- --input .\skus.csv --output .\data\products --accounts 1
+```
+
+| 参数 | 说明 |
+|------|------|
+| `--input` | SKU 文本、JSON 或 CSV 文件；省略时从标准输入读取 |
+| `--output` | 输出目录，默认 `data/products` |
+| `--profiles` | 逗号分隔的 OpenCLI profile 名称 |
+| `--accounts` | 使用配置文件中的前 N 个 profile |
+| `--retries` | 单 SKU 重试次数，默认 3 |
+| `--delay-ms` | 同一 profile 两次任务之间的基础间隔，默认 500ms |
+| `--no-resume` | 强制重新采集已有 SKU 文件 |
+
+CSV 会读取 `id` 列；存在 `platform` 列时只保留值为 `jd` 的行。商品采集的完整说明和
+实测限制参见 [SKU 商品信息采集](product-collector.md)。
 
 ---
 
