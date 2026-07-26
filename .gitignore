@@ -219,6 +219,7 @@ __marimo__/
 OpenCLI-main/
 dist-electron/
 node_modules/
+data/
 vendor/
 vendor/chromium/metadata.json
 vendor/chromium/chromium/win64-1628189/chrome-win/chrome_100_percent.pak

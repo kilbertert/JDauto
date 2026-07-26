@@ -151,7 +151,7 @@ function resolveNodeExecutable(): string {
  * 正确: opencli --profile <name> browser open <url>
  * 错误: opencli browser open <url> --profile <name>
  */
-async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000): Promise<CommandResult> {
+export async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000): Promise<CommandResult> {
   const fullArgs = profile
     ? ['--profile', profile, ...args]
     : [...args];
@@ -199,6 +199,36 @@ async function runOpenCLI(args: string[], profile?: string, timeoutMs = 60_000):
       resolve({ stdout: '', stderr: String(err), exitCode: 1 });
     });
   });
+}
+
+/**
+ * 打开商品页后读取 OpenCLI 在导航前启动的网络捕获。
+ * 返回原始 JSON 包络，由调用方选择目标接口响应。
+ */
+export async function openAndCaptureNetwork(
+  profile: string,
+  url: string,
+  timeoutMs = 60_000
+): Promise<unknown> {
+  const opened = await runOpenCLI(['browser', 'open', url], profile, timeoutMs);
+  if (opened.exitCode !== 0) {
+    throw new Error(`browser open failed: ${pickOutputText(opened)}`);
+  }
+
+  const captured = await runOpenCLI(
+    ['browser', 'network', '--all', '--raw', '--since', '30s'],
+    profile,
+    timeoutMs
+  );
+  if (captured.exitCode !== 0) {
+    throw new Error(`browser network failed: ${pickOutputText(captured)}`);
+  }
+
+  try {
+    return JSON.parse(captured.stdout);
+  } catch {
+    throw new Error(`browser network returned invalid JSON: ${pickOutputText(captured).slice(0, 500)}`);
+  }
 }
 
 /**
