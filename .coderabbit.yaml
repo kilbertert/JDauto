@@ -12,7 +12,5 @@ reviews:
     auto_incremental_review: false
     labels:
       - "review-ready"
-    base_branches:
-      - "main"
 chat:
   auto_reply: true
