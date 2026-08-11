@@ -30,3 +30,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local operator tooling and private collection input
+.claude/settings.local.json
+/SoloMD_4.10.2_x64-setup.exe
+/androguard.db
+/wx.cj.csv
